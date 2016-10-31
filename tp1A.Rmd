@@ -1,10 +1,10 @@
 ---
-output: pdf_document
+output: html_document
 ---
 
 ```{r knitr_options, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=12, fig.height=4, fig.path='graficos/',
+opts_chunk$set(fig.width=12, fig.height=8, fig.path='graficos/',
 	                      warning=FALSE, message=FALSE)
 ```
 
@@ -58,7 +58,7 @@ Constatar la asimetría de la variable PO y presentar evidencia de la misma. Eva
 ### Respuesta
 
 Una manera gráfica de constatar la asimetría es a través de un sencillo gráfico de densidad:
-```{r grafico_asimetria, fig.height=8```
+```{r grafico_asimetria, fig.height=8}
 plot(density(POmarco))
 rug(PO, col= 'blue', ticksize = 0.1, lwd = 1)
 ```
@@ -327,3 +327,9 @@ write.csv(muestra, file = 'data/muestraA.csv')
 # Algunos elementos de muestra
 sample_n(muestra, 10)
 ```
+
+## Ejercicio 6
+
+### Enunciado
+
+### Respuesta
