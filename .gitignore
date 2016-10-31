@@ -1,3 +1,6 @@
 # Archivos de trabajo de R
 .RData
 .Rhistory
+
+# Archivos temporarios de vim
+# *.swp

@@ -141,313 +141,97 @@ domainvalue <- c(1, 2, 3)
 CVobjetivo <- data.frame(DOM, CV1, CV2, CV3, domainvalue)
 CVobjetivo
 
-#############################
-#       Optimizacion        #
-#############################
-dirname  <-  "soluGen1"
-# Creo un directorio para los archivos de trabajo si aun no existe
-dir.exists(dirname) || dir.create(dirname)
-setwd(dirname)
-
-soluGen1 <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=200,
-                    pops=50,
-                    initialStrata=10,
-                    mut_chance=0.05,
-                    elitism_rate=0.10,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
-
-nuevosEstratosGen1 <- updateStrata(resumenMarco,soluGen1,writeFile=TRUE)
-
-nuevoMarco1 <- updateFrame(Marco.Agropecuario,nuevosEstratosGen1)
-
-nuevosEstratosGen1Ordenado <- nuevosEstratosGen1[order(DOM1,LABEL),]
-
-# Muestra por Estrato
-tapply(soluGen1$aggr_strata$SOLUZ,soluGen1$aggr_strata$DOM1,sum)
-
-# Evaluacion de la solucion sobre un conjunto de muestras
-
-evalSolution(nuevoMarco1,soluGen1$aggr_strata,nsampl=1000,writeFiles=TRUE)
-
-CV_esperados1 <- read.csv("expected_cv.csv")
-
-CV_esperados1 <- cbind(CV_esperados1,CVobjetivo)
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
-setwd("..")
-
-dirname  <-  "soluGen2"
-# Creo un directorio para los archivos de trabajo si aun no existe
-dir.exists(dirname) || dir.create(dirname)
-setwd(dirname)
-
-soluGen2 <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=200,
-                    pops=50,
-                    initialStrata=10,
-                    mut_chance=0.05,
-                    elitism_rate=0.20,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
-
-nuevosEstratosGen2 <- updateStrata(resumenMarco,soluGen2,writeFile=TRUE)
-
-nuevoMarco2 <- updateFrame(Marco.Agropecuario,nuevosEstratosGen2)
-
-nuevosEstratosGen2Ordenado <- nuevosEstratosGen2[order(DOM1,LABEL),]
-
-# Muestra por Estrato
-tapply(soluGen2$aggr_strata$SOLUZ,soluGen2$aggr_strata$DOM1,sum)
-
-# Evaluacion de la solucion sobre un conjunto de muestras
-
-evalSolution(nuevoMarco2,soluGen2$aggr_strata,nsampl=1000,writeFiles=TRUE)
-
-CV_esperados2 <- read.csv("expected_cv.csv")
-
-CV_esperados2 <- cbind(CV_esperados2,CVobjetivo)
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco2,soluGen2$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
-setwd("..")
-
-dirname  <-  "soluGen3"
-# Creo un directorio para los archivos de trabajo si aun no existe
-dir.exists(dirname) || dir.create(dirname)
-setwd(dirname)
-
-soluGen3 <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=200,
-                    pops=50,
-                    initialStrata=10,
-                    mut_chance=0.05,
-                    elitism_rate=0.20,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
-
-nuevosEstratosGen3 <- updateStrata(resumenMarco,soluGen3,writeFile=TRUE)
-
-nuevoMarco3 <- updateFrame(Marco.Agropecuario,nuevosEstratosGen3)
-
-nuevosEstratosGen3Ordenado <- nuevosEstratosGen3[order(DOM1,LABEL),]
-
-# Muestra por Estrato
-tapply(soluGen3$aggr_strata$SOLUZ,soluGen3$aggr_strata$DOM1,sum)
-
-# Evaluacion de la solucion sobre un conjunto de muestras
-
-evalSolution(nuevoMarco3,soluGen3$aggr_strata,nsampl=1000,writeFiles=TRUE)
-
-CV_esperados3 <- read.csv("expected_cv.csv")
-
-CV_esperados3 <- cbind(CV_esperados3,CVobjetivo)
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
-setwd("..")
-
-dirname  <-  "soluGen4"
-# Creo un directorio para los archivos de trabajo si aun no existe
-dir.exists(dirname) || dir.create(dirname)
-setwd(dirname)
-
-soluGen4 <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=200,
-                    pops=50,
-                    initialStrata=10,
-                    mut_chance=0.05,
-                    elitism_rate=0.20,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
-
-nuevosEstratosGen4 <- updateStrata(resumenMarco,soluGen4,writeFile=TRUE)
-
-nuevoMarco4 <- updateFrame(Marco.Agropecuario,nuevosEstratosGen4)
-
-nuevosEstratosGen4Ordenado <- nuevosEstratosGen4[order(DOM1,LABEL),]
-
-# Muestra por Estrato
-tapply(soluGen4$aggr_strata$SOLUZ,soluGen4$aggr_strata$DOM1,sum)
-
-# Evaluacion de la solucion sobre un conjunto de muestras
-
-evalSolution(nuevoMarco4,soluGen4$aggr_strata,nsampl=1000,writeFiles=TRUE)
-
-CV_esperados4 <- read.csv("expected_cv.csv")
-
-CV_esperados4 <- cbind(CV_esperados4,CVobjetivo)
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
-setwd("..")
-
-dirname  <-  "soluGen5"
-# Creo un directorio para los archivos de trabajo si aun no existe
-dir.exists(dirname) || dir.create(dirname)
-setwd(dirname)
-
-soluGen5 <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=200,
-                    pops=50,
-                    initialStrata=10,
-                    mut_chance=0.05,
-                    elitism_rate=0.20,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
-
-nuevosEstratosGen5 <- updateStrata(resumenMarco,soluGen5,writeFile=TRUE)
-
-nuevoMarco5 <- updateFrame(Marco.Agropecuario,nuevosEstratosGen5)
-
-nuevosEstratosGen5Ordenado <- nuevosEstratosGen5[order(DOM1,LABEL),]
-
-# Muestra por Estrato
-tapply(soluGen5$aggr_strata$SOLUZ,soluGen5$aggr_strata$DOM1,sum)
-
-# Evaluacion de la solucion sobre un conjunto de muestras
-
-evalSolution(nuevoMarco5,soluGen5$aggr_strata,nsampl=1000,writeFiles=TRUE)
-
-CV_esperados5 <- read.csv("expected_cv.csv")
-
-CV_esperados5 <- cbind(CV_esperados5,CVobjetivo)
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
-setwd("..")
-
-dirname  <-  "soluGen6"
-# Creo un directorio para los archivos de trabajo si aun no existe
-dir.exists(dirname) || dir.create(dirname)
-setwd(dirname)
-
-soluGen6 <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=200,
-                    pops=50,
-                    initialStrata=10,
-                    mut_chance=0.05,
-                    elitism_rate=0.20,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
-
-nuevosEstratosGen6 <- updateStrata(resumenMarco,soluGen6,writeFile=TRUE)
-
-nuevoMarco6 <- updateFrame(Marco.Agropecuario,nuevosEstratosGen6)
-
-nuevosEstratosGen6Ordenado <- nuevosEstratosGen6[order(DOM1,LABEL),]
-
-# Muestra por Estrato
-tapply(soluGen6$aggr_strata$SOLUZ,soluGen6$aggr_strata$DOM1,sum)
-
-# Evaluacion de la solucion sobre un conjunto de muestras
-
-evalSolution(nuevoMarco6,soluGen6$aggr_strata,nsampl=1000,writeFiles=TRUE)
-
-CV_esperados6 <- read.csv("expected_cv.csv")
-
-CV_esperados6 <- cbind(CV_esperados6,CVobjetivo)
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
-setwd("..")
+##############################
+#    Ajuste de parametros    #
+##############################
+
+# Considero seis juegos de parametros a probar, combinando 3 variantes de mut_chance con 2 de elitism_rate
+# Los manoseo un poco para ubicarlos en un data frame
+prueba1 <- c("prueba1", 0.05, 0.1)
+prueba2 <- c("prueba2", 0.05, 0.2)
+prueba3 <- c("prueba3", 0.10, 0.1)
+prueba4 <- c("prueba4", 0.10, 0.2)
+prueba5 <- c("prueba5", 0.20, 0.1)
+prueba6 <- c("prueba6", 0.20, 0.2)
+
+parametrosAProbar <- array(t(c(prueba1,
+                             prueba2,
+                             prueba3,
+                             prueba4,
+                             prueba5,
+                             prueba6)),
+                           c(3,6))
+parametrosAProbar <- as.data.frame(t(parametrosAProbar))
+colnames(parametrosAProbar) <- c("dirname","mut_chance","elitism_rate")
+parametrosAProbar$mut_chance <- as.numeric(as.character(parametrosAProbar$mut_chance))
+parametrosAProbar$elitism_rate <- as.numeric(as.character(parametrosAProbar$elitism_rate))
+
+# La siguiente funcion intenta obtener agrupamientos optimos de estratos con poblaciones de 200 individuos, 
+# durante 100 iteraciones. Luego, actualiza el marco original con los nuevos estratos, provee un resumen de las
+# cantidades mas relevantes, y finalmente evalua la solucion en 100 muestras
 
 probarParametros <- function(mut_chance, elitism_rate) {
-
+  
   prueba <- list()
   prueba$solu <- optimizeStrata(strata=resumenMarco,
-                    errors=CVobjetivo,                        
-                    iter=20,
-                    pops=10,
-                    initialStrata=10,
-                    mut_chance=mut_chance,
-                    elitism_rate=elitism_rate,
-                    minnumstr=5,
-                    writeFiles=TRUE)
-
+                                errors=CVobjetivo,                        
+                                iter=200,
+                                pops=100,
+                                initialStrata=5,
+                                mut_chance=mut_chance,
+                                elitism_rate=elitism_rate,
+                                minnumstr=5,
+                                writeFiles=TRUE)
+  
   prueba$nuevosEstratos <- updateStrata(resumenMarco, prueba$solu, writeFile=TRUE)
-
+  
   prueba$nuevoMarco <- updateFrame(Marco.Agropecuario,prueba$nuevosEstratos)
-
-# Muestra por Estrato
+  
+  # Resumen aspectos centrales
   prueba$resumen <- data.frame(mut_chance,elitism_rate)
   prueba$resumen <- cbind(prueba$resumen,t(tapply(prueba$solu$aggr_strata$STRATO,prueba$solu$aggr_strata$DOM1,function(x) length(unique(x)))))
   prueba$resumen <- cbind(prueba$resumen,t(tapply(prueba$solu$aggr_strata$SOLUZ,prueba$solu$aggr_strata$DOM1,sum)))
-
+  
   colnames(prueba$resumen) <- c("mut_chance","elitism_rate","hNorte","hCentro","hSur","nNorte","nCentro","nSur")
   
   prueba$resumen$H <- prueba$resumen$hNorte + prueba$resumen$hCentro + prueba$resumen$hSur
-  prueba$prueba$resumen$N <- prueba$resumen$nNorte + prueba$resumen$nCentro + prueba$resumen$nSur
-
+  prueba$resumen$N <- prueba$resumen$nNorte + prueba$resumen$nCentro + prueba$resumen$nSur
+  
   prueba$eval <- evalSolution(prueba$nuevoMarco,prueba$solu$aggr_strata,nsampl=100,writeFiles=TRUE)
-
+  
   prueba$CVesperado <-read.csv("expected_cv.csv")
   prueba$CVesperado <- cbind(prueba$CVesperado,CVobjetivo)
-
+  
   return(prueba)
 }
+
+
+pruebas <- list()
+
+for (i in 1:6) {
+  row <- parametrosAProbar[i,]
+  dirname <- as.character(row$dirname)
+  # Creo un directorio para los archivos de trabajo si aun no existe
+  dir.exists(dirname) || dir.create(dirname)
+  setwd(dirname)
+
+    pruebas[[i]] <- probarParametros(mut_chance = row$mut_chance,
+                                 elitism_rate = row$elitism_rate)
+  setwd("..")
+}
+
+### Seleccion de la muestra bajo MSA
+# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
+## Resumen
+# Total Pob
+# sum(muestra$WEIGHTS)
+# Total Pob por dominio
+# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
+# Total de muestra por dominio
+# table(muestra$DOMAINVALUE)
+
+setwd("..")
+
 ### Seleccion de la muestra bajo MSA
 # muestra <- selectSample(nuevoMarco1,prueba$solu$aggr_strata)
 ## Resumen
