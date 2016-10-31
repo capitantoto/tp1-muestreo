@@ -6,7 +6,7 @@ library(PracTools)
 library(sampling)
 
 # Cargo la data de prueba
-load("Prueba.Piloto.RData")
+load("data/Prueba.Piloto.RData")
 # attach(Prueba.Piloto)
 
 # Doy nombres mas descriptivos a las variables del Piloto
@@ -16,7 +16,7 @@ POpiloto = Prueba.Piloto$x
 VMPpiloto = Prueba.Piloto$y
 
 # Cargo el Marco completo
-load("Marco.PO.RData")
+load("data/Marco.PO.RData")
 # attach(Marco.PO)
 
 # Doy nombres mas descriptivos a las variables del Marco
@@ -33,7 +33,7 @@ POmarco = Marco.PO$PO
 hist(POmarco, density = 20, col = 'blue')
 
 plot(density(POmarco))
-rug(PO, col= 'orange', ticksize = 0.04, lwd = 1.2)
+rug(POmarco, col= 'orange', ticksize = 0.04, lwd = 1.2)
 summary(POmarco)
 asimPOmarco <- moments::skewness(POmarco)
 
@@ -167,4 +167,4 @@ seleccion <- strata(MarcoAsignado,
 
 muestra <- getdata(MarcoAsignado,seleccion)
 
-write.csv(muestra, file = 'muestraA.csv')
+write.csv(muestra, file = 'data/muestraA.csv')
