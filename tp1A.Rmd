@@ -1,0 +1,324 @@
+---
+output: html_document
+---
+
+```{r knitr_options, include=FALSE}
+library(knitr)
+opts_chunk$set(fig.width=12, fig.height=4, fig.path='graficos/',
+	                      warning=FALSE, message=FALSE)
+```
+
+# Trabajo Práctico 1, Parte A
+# Muestreo en poblaciones finitas 2016
+
+* 31 de Octubre de 2016
+* Profesor: Gerardo Mitas
+* Alumno: Gonzalo Barrera Borla
+
+## Setup Inicial
+
+Antes de proceder con la resolución de las consignas, debemos cargar las librerías a utilizar, y los marcos con la data a analizar. También aprovecharemos para dar nombres mas descriptivos a algunas variables de interés:
+
+```{r setup}
+# Packages:
+library(moments)
+library(stratification)
+library(car)
+library(PracTools)
+library(sampling)
+
+# Data de prueba
+load("data/Prueba.Piloto.RData")
+
+# Doy nombres mas descriptivos a las variables del Piloto
+POpiloto = Prueba.Piloto$x
+VMPpiloto = Prueba.Piloto$y
+
+# Cargo el Marco completo
+load("data/Marco.PO.RData")
+
+# Doy nombres mas descriptivos a las variables del Marco
+POmarco = Marco.PO$PO
+```
+
+Se pueden ejecutar algunos comandos para explorar la data si así se desea:
+```{r explorar_piloto eval=FALSE}
+summary(Prueba.Piloto)
+head(Prueba.Piloto)
+sample_n(Prueba.Piloto, 20)
+```
+
+## Ejercicio 1
+
+### Enunciado
+
+Constatar la asimetría de la variable PO y presentar evidencia de la misma. Evaluar la información provista por “Prueba.Piloto.RData” presentado un gráfico de PO vs VMP y proponiendo un modelo simple de regresión entre PO y VMP atendiendo la probable heterocedasticidad en el modelo. Con fines descriptivos acompañe con alguno de los plots que sugieren ésta heterocedasticidad (por ejemplo entre los residuos al cuadrado de la regresión y la variable PO u otros que encuentre adecuados a tal fin) o a través del resultado de un test (por ejemplo, el test de Breusch & Pagan u otro de su conocimiento).
+
+### Respuesta
+
+Una manera gráfica de constatar la asimetría es a través de un sencillo gráfico de densidad:
+```{r grafico_asimetria, fig.height=8```
+plot(density(POmarco))
+rug(PO, col= 'blue', ticksize = 0.1, lwd = 1)
+```
+
+Aquí se puede ver claramente la asimetría positiva que presenta la variable PO en el Marco completo.
+
+```{r valor_asimetria include=FALSE}
+asimPOmarco <- moments::skewness(POmarco)
+```
+
+Alternativamente, podemos usar un paquete como `moments`, que provee la función `skewness` para computar tercer momento centrado. En este caso, la asimetría de PO es de `r asimPOmarco`.
+
+Observamos luego gráficamente la relación entre PO y VMP, en los datos de la Prueba Piloto:
+```{r grafico_po_vmp}
+plot(POpiloto, VMPpiloto)
+```
+
+Y proponemos un modelo de regresión entre ambas variables, sin ordenada y asumiendo homocedasticidad:
+
+$ VMP\_{i} = \beta PO_{i} + \epsilon_{i}$
+
+```{r modelo_po_vmp}
+sinOrdenada <- lm(VMPpiloto ~ POpiloto + 0)
+# Extraigo el coeficiente de las X (PO)
+beta = sinOrdenada$coefficients["POpiloto"]
+```
+
+```{r comprobacion_logica_lm include=FALSE}
+# Compruebo que entiendo como se calculan los residuos y fitted values del ML:
+# (x1 - x2)^2 < 1e-6 pretende proteger la comparacion contra errores de precision de float
+
+VMPhat = POpiloto * beta # 'hat' por VMP 'sombrero'
+residuos = VMPpiloto - POpiloto * beta
+all((sinOrdenada$fitted.values - VMPhat)^2 < 0.000001)
+all((sinOrdenada$residuals - residuos)^2 < 0.000001)
+```
+Ya en el gráfico anterior, la forma de "trompeta" nos hace sospechar la existencia de heterocedasticidad. Para comprobarlo, podemos graficar los residuos al cuadrado de la regresión:
+
+```{r grafico_residuos_cuadrados}
+residuosCuadrados = sinOrdenada$residuals ^ 2
+plot(POpiloto, residuosCuadrados)
+```
+
+O aprovechar las capacidades del package `car`, que ofrece un bello gráfico de residuos de un modelo linear. En él se aprecia claramente como el módulo de los residuos aumenta con PO.
+```{r grafico_residuos_car}
+# Es identico a `plot(PO, residuals(sinOrdenada))` pero mejor editado
+residualPlot(sinOrdenada)
+```
+```{r bptest include=FALSE
+BPTest <- ncvTest(sinOrdenada)
+```
+Una alternativa numérica, es computar el test de Breusch-Pagan de heterocedasticidad en el modelo. El p-valor que devuelve este test es `r BPTest$p`: siendo éste tan ínfimo, debemos debemos rechazar la hipotesis nula de homocedasticidaden el modelo.
+
+## Ejercicio 2
+
+### Enunciado
+
+Aceptando la evidencia del punto 1 estimar según los datos provistos los parámetros “beta”, “sig2” y “gamma” necesarios para atender el modelo lineal simple de discrepancia en el algoritmo de Kozak. Recordar que “stratification” permite modelar $ VMP\_{i} = \beta PO_{i} + \epsilon_{i}$ con $\epsilon_{i}~N(0,\sigma_{i}^{2})$ y $\sigma_{i}^{2}=\sigma^{2}X_{i}^{\gamma}$ donde beta=$\beta$, sig2=$\sigma^{2}$ y gamma=$\gamma$ son parámetros que deben ser brindados por el usuario. 
+
+### Respuesta
+
+El paquete `PracTools` provee una conveniente función llamda `gammaFit` para estimar el exponente de las X en una regresión lineal heterocedástica.
+
+```{r gammaA}
+# Estimacion de parametros para el algoritmo de Kozak
+# Modo A: Utilizando PracTools::gammaFit
+gammaA <- gammaFit(POpiloto, POpiloto, VMPpiloto)$g.hat
+```
+
+Sin embargo, esto nos deja aún en la necesidad de estimar $\sigma^{2}$. Si asumimos que los residuos cuadrados del modelo homocedástico aproximan satisfactoriamiente los $\sigma_{i}^{2}$, podemos utilizar un modelo linear para aproximar $\sigma^{2}$ y $\gamma$:
+
+$$
+\begin{align}
+\sigma_{i}^{2} &= \sigma^{2}X_{i}^{\gamma} \\
+\ln(\sigma_{i}^{2)} &= \ln(\sigma^{2}X_{i}^{\gamma}) \\
+\ln(\sigma_{i}^{2)} &= \ln(\sigma^{2}) + \gamma \ln(X_{i})
+\end{align}
+$$
+
+Luego, $\gamma$ es el coeficiente $\ln(X_{i}$ que devuelve el modelo, y si el coeficiente independiente obtenido es $\alpha$, podemos calcular $\sigma^{2} = \e^{\alpha}$:
+
+```{r gammaB}
+# Modo B: Asumiendo un modelo lineal entre log(residuosCuadrados) ~ log(x)
+modeloResiduos <- lm(log(residuosCuadrados) ~ log(POpiloto))
+gammaB <- modeloResiduos$coefficients["log(POpiloto)"]
+sig2B <- exp(modeloResiduos$coefficients["(Intercept)"])
+```
+Comparando los resultados obtenidos, resulta que el valor de $\gamma$ obtenido por `gammaFit` es un poco mayor al que devuelve el modelado de los residuos: `r gammaA` versus `r gammaB`. Dado que esto es un estudio práctico y sobre todo, *aproximado* de la relación entre una variable conocida, PO, y la que se pretende estudiar, VMP, preferiremos ser "pesimistas" y maximizar la estimación de la heterocedasticidad observada entre PO y VMP: es por ello que utilizaremos `gammaA` (`r gammaA`) como nuestro estimador de $\gamma$. Así, los tamaños muestrales que propongamos serán un poco mayores, más "holgados", y minimizaremos la cantidad de sorpresas desagradables en el cómputo final de los CV.
+
+## Ejercicio 3
+
+### Enunciado
+
+Con los valores estimados del punto 2 más las opciones (1) estudiar las alternativas de 2 hasta 5 estratos con respecto al tamaño de muestra final según la precisión deseada. Presente una tabla resumen con las distintas alternativas y con la siguiente información: opciones empleadas en el algoritmo, los bordes de los estratos surgidos del algoritmo, Nh y nh resultantes, los CV alcanzados en los estratos para la variable y el tamaño final de la muestra. 
+
+Donde las opciones (1) son:
+- CV=2%, 
+- Asignación óptima de Neyman dentro de los estratos, 
+- Un estrato de Autorepresentados, 
+- Tasa de respuesta del orden del 80% en cada estrato, salvo en el de Autorepresentados, en cuyo caso y para este estrato en particular se asumirá respuesta total en todas las evaluaciones, 
+ 
+
+### Respuesta
+
+En primer lugar, preparo las variables auxiliares que me permitirán pasar a la función `strata.LH` las opciones exigidos
+
+```{r setup_kozak}
+# Asignación óptima de Neyman por estrato
+asigNeyman <- c(0.5, 0, 0.5)
+
+# Armo vectores de no-respuesta para 2-5 estratos
+rh2 <- c(rep(0.8, 1), 1)
+rh3 <- c(rep(0.8, 2), 1)
+rh4 <- c(rep(0.8, 3), 1)
+rh5 <- c(rep(0.8, 4), 1)
+
+# Parametros de control para utilizar Kozak con modelo lineal
+parametrosKozak <- list(beta = beta, sig2 = sig2B, gamma = gammaA)
+```
+
+Luego, ejecuto la función optimizadora de bordes `strata.LH` para las alternativas de 2 a 5 estratos:
+
+```{r alternativas_kozak}
+# K{N} sera la variable que contenga los resultados de la estratificacion por Kozak para N estratos
+
+K2 <- strata.LH(x = POmarco,
+               CV = 0.02,
+               Ls = 2,
+               alloc = asigNeyman,
+               takeall = 1,
+               rh = rh2,
+               model = "linear",
+               model.control = parametrosKozak)
+
+K3 <- strata.LH(x = POmarco,
+               CV = 0.02,
+               Ls = 3,
+               alloc = asigNeyman,
+               takeall = 1,
+               rh = rh3,
+               model = "linear",
+               model.control = parametrosKozak)
+
+K4 <- strata.LH(x = POmarco,
+               CV = 0.02,
+               Ls = 4,
+               alloc = asigNeyman,
+               takeall = 1,
+               rh = rh4,
+               model = "linear",
+               model.control = parametrosKozak)
+
+K5 <- strata.LH(x = POmarco,
+               CV = 0.02,
+               Ls = 5,
+               alloc = asigNeyman,
+               takeall = 1,
+               rh = rh5,
+               model = "linear",
+               model.control = parametrosKozak)
+```
+
+Una parte de la información requerida en el enunciado (las opciones empleadas en el algoritmo) resultan evidentes en el bloque de código precedente. La información que imprime `strata.LH` por default cubre otros tantos requerimientos: 
+- los bordes de los estratos surgidos (`bh`), 
+- la existencia de estratos autorrepresentados (`type=='take-all'`),
+- la tasa de no respuesta por estrato (`rh`)
+- Nh y nh resultantes (literalmente, `Nh` y `nh`), y
+- el tamaño final de la muestra (mencionado como "Total Sample Size")
+ 
+También se provee el CV anticipado para el total de la muestra, pero en los requerimientos del enunciado se pide específicamente los CV alcanzados en cada estrato.
+
+Sabiendo que para el estimador del total de Horvitz-Thompson
+$CV(\hat{X}) = \frac{\sqrt{Var(\hat{X})}}{E(\hat{X})}$
+donde
+$ E(\hat{X}) = N\bar{x} $
+y
+$ Var(\hat{X}) = N^{2} ( \frac{1}{n} - \frac{1}{N} ) S^{2}_{x} $
+
+Podemos aprovechar que `strata.LH` de por sí devuelve $\bar{x}$ (`mean`) y $S^{2}_{x}$ (`varh`) para computar los CV alcanzados por estrato con la siguiente función casera:
+```{r fun_cvestratos}
+CVestratos <- function(estratificacion) {
+  CV <- sqrt(estratificacion$varh * (1/estratificacion$nh - 1/estratificacion$Nh)) / estratificacion$mean
+  return(CV)
+}
+
+# Utilizamos la función recién definida para agregar un elemento más a los resultados anteriores
+K2$CV <- CVestratos(K2)
+K3$CV <- CVestratos(K3)
+K4$CV <- CVestratos(K4)
+K5$CV <- CVestratos(K5)
+```
+Finalmente, aunque de manera un poco verborrágica, estamos en condiciones de proveer toda la información solicitada:
+```{r descripcion_estratos_kozak echo=FALSE}
+# K2: 2 estratos
+K2
+K2$CV
+# K3: 3 estratos
+K3
+K3$CV
+# K4: 4 estratos
+K4
+K4$CV
+# K5: 5 estratos
+K5
+K5$CV
+```
+
+## Ejercicio 4
+
+### Enunciado
+
+¿Cuál de las soluciones estudiadas aconsejaría si se pretende adoptar aquella que determina el menor tamaño muestral que satisface los requisitos de precisión?
+
+### Respuesta
+
+A primera vista, se observa que cada vez que introducimos un nuevo estrato, el tamaño muestral necesario para alcanzar los CV objetivo disminuye: considerablemente al agregar el tercer y cuarto estratos (respectivamente, un 46,8% - de 802 a 426-, y un 30,3% - de 426 a 297-), y una cantidad significativa pero menor al agregar el quinto (16,5%, de 297 a 248).
+
+En todos los casos el CV total anticipado no supera la restricción de ser menor o igual al 2%. Los CV por estrato alcanzados no superan tampoco el 10%, con una sola excepción: el cuarto estrato de K5 tiene un CV de 12,9%.
+
+Ateniéndonos al pie de la letra, **aconsejaremos adoptar la solución de cinco estratos**, que mantiene el CV total anticipado por debajo de 2% y tiene el N total más pequeño. 
+
+Sin embargo, no podemos dejar de advertir **ciertas señales de alarma**. Este análisis asume una población estática, sin nacimientos, defunciones y sobre todo, cambios de estrato para los individuos de la población. Este supuesto es en general poco realista, y si sospechamos que esta población particular podría incumplirlo, nos convendrá errar hacia lo seguro y elegir únicamente 4 estratos. Más aún, cuando como observamos anteriormente, uno de los estratos formados (el cuarto de los 5) tiene un CV bastante alto.
+
+## Ejercicio 5
+
+### Enunciado
+
+Asigne cada empresa del universo respetando la estratificación que propuso en el punto 4 y seleccione la muestra según los tamaños por estrato definidos por el algoritmo. Acompañar la presentación del TP con la muestra seleccionada.
+
+### Respuesta
+
+Dados los bordes de estratos que contiene el objeto `K5`, podemos asignar a cada individuo del marco original el estrato que le corresponde con algunas operaciones:
+
+```{r asignacion_estratos}
+# Extraigo los nuevos ID de estratos y los combino con el Marco original
+Estrato <- K5$stratumID
+MarcoAsignado <- cbind(Marco.PO,Estrato)
+
+# Genero una tabla resumen con los Pik por estrato
+Pik <- K5$nh / K5$Nh
+idEstratos <- c(1,2,3,4,5)
+
+PikPorEstrato <- cbind.data.frame(idEstratos, Pik)
+colnames(PikPorEstrato) <- c("Estrato","Pik")
+
+# Combino el MarcoAsignado con los PikPorEstrato
+MarcoAsignado <- merge(MarcoAsignado, PikPorEstrato)
+
+# El comando `strata` permite elegir por MSA los individuos de cada estrato que participan de la muestra final,
+# siempre y cuando se le provean los ID de estratos y las pik por indivduo
+seleccion <- strata(MarcoAsignado,
+                    stratanames="Estrato",
+                    size=K5$nh,
+                    method="srswor",
+                    pik=MarcoAsignado$Pik)
+
+# Finalmente, `getdata` filtra el Marco completo y devuelve únicamente la muestra antes generada
+muestra <- getdata(MarcoAsignado,seleccion)
+```
+
+Para futura referencia, la muestra final se guarda en un archivo CSV:
+```{r guardar_csv_muestra}
+write.csv(muestra, file = 'data/muestraA.csv')
+```
