@@ -1,5 +1,5 @@
 ---
-output: html_document
+output: pdf_document
 ---
 
 ```{r knitr_options, include=FALSE}
@@ -26,6 +26,7 @@ library(stratification)
 library(car)
 library(PracTools)
 library(sampling)
+library(dplyr)
 
 # Data de prueba
 load("data/Prueba.Piloto.RData")
@@ -42,7 +43,7 @@ POmarco = Marco.PO$PO
 ```
 
 Se pueden ejecutar algunos comandos para explorar la data si así se desea:
-```{r explorar_piloto eval=FALSE}
+```{r explorar_piloto, eval=FALSE}
 summary(Prueba.Piloto)
 head(Prueba.Piloto)
 sample_n(Prueba.Piloto, 20)
@@ -64,7 +65,7 @@ rug(PO, col= 'blue', ticksize = 0.1, lwd = 1)
 
 Aquí se puede ver claramente la asimetría positiva que presenta la variable PO en el Marco completo.
 
-```{r valor_asimetria include=FALSE}
+```{r valor_asimetria, include=FALSE}
 asimPOmarco <- moments::skewness(POmarco)
 ```
 
@@ -77,7 +78,7 @@ plot(POpiloto, VMPpiloto)
 
 Y proponemos un modelo de regresión entre ambas variables, sin ordenada y asumiendo homocedasticidad:
 
-$ VMP\_{i} = \beta PO_{i} + \epsilon_{i}$
+$VMP\_{i} = \beta PO_{i} + \epsilon_{i}$
 
 ```{r modelo_po_vmp}
 sinOrdenada <- lm(VMPpiloto ~ POpiloto + 0)
@@ -85,7 +86,7 @@ sinOrdenada <- lm(VMPpiloto ~ POpiloto + 0)
 beta = sinOrdenada$coefficients["POpiloto"]
 ```
 
-```{r comprobacion_logica_lm include=FALSE}
+```{r comprobacion_logica_lm, include=FALSE}
 # Compruebo que entiendo como se calculan los residuos y fitted values del ML:
 # (x1 - x2)^2 < 1e-6 pretende proteger la comparacion contra errores de precision de float
 
@@ -106,7 +107,8 @@ O aprovechar las capacidades del package `car`, que ofrece un bello gráfico de 
 # Es identico a `plot(PO, residuals(sinOrdenada))` pero mejor editado
 residualPlot(sinOrdenada)
 ```
-```{r bptest include=FALSE
+
+```{r bptest, include=FALSE}
 BPTest <- ncvTest(sinOrdenada)
 ```
 Una alternativa numérica, es computar el test de Breusch-Pagan de heterocedasticidad en el modelo. El p-valor que devuelve este test es `r BPTest$p`: siendo éste tan ínfimo, debemos debemos rechazar la hipotesis nula de homocedasticidaden el modelo.
@@ -115,7 +117,7 @@ Una alternativa numérica, es computar el test de Breusch-Pagan de heterocedasti
 
 ### Enunciado
 
-Aceptando la evidencia del punto 1 estimar según los datos provistos los parámetros “beta”, “sig2” y “gamma” necesarios para atender el modelo lineal simple de discrepancia en el algoritmo de Kozak. Recordar que “stratification” permite modelar $ VMP\_{i} = \beta PO_{i} + \epsilon_{i}$ con $\epsilon_{i}~N(0,\sigma_{i}^{2})$ y $\sigma_{i}^{2}=\sigma^{2}X_{i}^{\gamma}$ donde beta=$\beta$, sig2=$\sigma^{2}$ y gamma=$\gamma$ son parámetros que deben ser brindados por el usuario. 
+Aceptando la evidencia del punto 1 estimar según los datos provistos los parámetros “beta”, “sig2” y “gamma” necesarios para atender el modelo lineal simple de discrepancia en el algoritmo de Kozak. Recordar que “stratification” permite modelar $Y_{i} = \beta X_{i} + \epsilon_{i}$ con $\epsilon_{i}\~N(0,\sigma_{i}^{2})$ y $\sigma_{i}^{2}=\sigma^{2}X_{i}^{\gamma}$ donde beta=$\beta$, sig2=$\sigma^{2}$ y gamma=$\gamma$ son parámetros que deben ser brindados por el usuario. 
 
 ### Respuesta
 
@@ -132,12 +134,12 @@ Sin embargo, esto nos deja aún en la necesidad de estimar $\sigma^{2}$. Si asum
 $$
 \begin{align}
 \sigma_{i}^{2} &= \sigma^{2}X_{i}^{\gamma} \\
-\ln(\sigma_{i}^{2)} &= \ln(\sigma^{2}X_{i}^{\gamma}) \\
+\ln(\sigma_{i}^{2}) &= \ln(\sigma^{2}X_{i}^{\gamma}) \\
 \ln(\sigma_{i}^{2)} &= \ln(\sigma^{2}) + \gamma \ln(X_{i})
 \end{align}
 $$
 
-Luego, $\gamma$ es el coeficiente $\ln(X_{i}$ que devuelve el modelo, y si el coeficiente independiente obtenido es $\alpha$, podemos calcular $\sigma^{2} = \e^{\alpha}$:
+Luego, $\gamma$ es el coeficiente $\ln(X_{i})$ que devuelve el modelo, y si el coeficiente independiente obtenido es $\alpha$, podemos calcular $\sigma^{2} = e^{\alpha}$:
 
 ```{r gammaB}
 # Modo B: Asumiendo un modelo lineal entre log(residuosCuadrados) ~ log(x)
@@ -154,10 +156,10 @@ Comparando los resultados obtenidos, resulta que el valor de $\gamma$ obtenido p
 Con los valores estimados del punto 2 más las opciones (1) estudiar las alternativas de 2 hasta 5 estratos con respecto al tamaño de muestra final según la precisión deseada. Presente una tabla resumen con las distintas alternativas y con la siguiente información: opciones empleadas en el algoritmo, los bordes de los estratos surgidos del algoritmo, Nh y nh resultantes, los CV alcanzados en los estratos para la variable y el tamaño final de la muestra. 
 
 Donde las opciones (1) son:
-- CV=2%, 
-- Asignación óptima de Neyman dentro de los estratos, 
-- Un estrato de Autorepresentados, 
-- Tasa de respuesta del orden del 80% en cada estrato, salvo en el de Autorepresentados, en cuyo caso y para este estrato en particular se asumirá respuesta total en todas las evaluaciones, 
+* CV=2%, 
+* Asignación óptima de Neyman dentro de los estratos, 
+* Un estrato de Autorepresentados, 
+* Tasa de respuesta del orden del 80% en cada estrato, salvo en el de Autorepresentados, en cuyo caso y para este estrato en particular se asumirá respuesta total en todas las evaluaciones, 
  
 
 ### Respuesta
@@ -221,20 +223,20 @@ K5 <- strata.LH(x = POmarco,
 ```
 
 Una parte de la información requerida en el enunciado (las opciones empleadas en el algoritmo) resultan evidentes en el bloque de código precedente. La información que imprime `strata.LH` por default cubre otros tantos requerimientos: 
-- los bordes de los estratos surgidos (`bh`), 
-- la existencia de estratos autorrepresentados (`type=='take-all'`),
-- la tasa de no respuesta por estrato (`rh`)
-- Nh y nh resultantes (literalmente, `Nh` y `nh`), y
-- el tamaño final de la muestra (mencionado como "Total Sample Size")
+* los bordes de los estratos surgidos (`bh`), 
+* la existencia de estratos autorrepresentados (`type=='take-all'`),
+* la tasa de no respuesta por estrato (`rh`)
+* Nh y nh resultantes (literalmente, `Nh` y `nh`), y
+* el tamaño final de la muestra (mencionado como "Total Sample Size")
  
 También se provee el CV anticipado para el total de la muestra, pero en los requerimientos del enunciado se pide específicamente los CV alcanzados en cada estrato.
 
 Sabiendo que para el estimador del total de Horvitz-Thompson
-$CV(\hat{X}) = \frac{\sqrt{Var(\hat{X})}}{E(\hat{X})}$
+$$CV(\hat{X}) = \frac{\sqrt{Var(\hat{X})}}{E(\hat{X})}$$
 donde
-$ E(\hat{X}) = N\bar{x} $
+$$E(\hat{X}) = N\bar{x}$$
 y
-$ Var(\hat{X}) = N^{2} ( \frac{1}{n} - \frac{1}{N} ) S^{2}_{x} $
+$$Var(\hat{X}) = N^{2} ( \frac{1}{n} - \frac{1}{N} ) S^{2}_{x}$$
 
 Podemos aprovechar que `strata.LH` de por sí devuelve $\bar{x}$ (`mean`) y $S^{2}_{x}$ (`varh`) para computar los CV alcanzados por estrato con la siguiente función casera:
 ```{r fun_cvestratos}
@@ -250,7 +252,7 @@ K4$CV <- CVestratos(K4)
 K5$CV <- CVestratos(K5)
 ```
 Finalmente, aunque de manera un poco verborrágica, estamos en condiciones de proveer toda la información solicitada:
-```{r descripcion_estratos_kozak echo=FALSE}
+```{r descripcion_estratos_kozak, echo=FALSE}
 # K2: 2 estratos
 K2
 K2$CV
@@ -321,4 +323,7 @@ muestra <- getdata(MarcoAsignado,seleccion)
 Para futura referencia, la muestra final se guarda en un archivo CSV:
 ```{r guardar_csv_muestra}
 write.csv(muestra, file = 'data/muestraA.csv')
+
+# Algunos elementos de muestra
+sample_n(muestra, 10)
 ```
