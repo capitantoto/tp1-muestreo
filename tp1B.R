@@ -433,23 +433,23 @@ probarParametros <- function(mut_chance, elitism_rate) {
 
 # Muestra por Estrato
   prueba$resumen <- data.frame(mut_chance,elitism_rate)
-  prueba$resumen <- cbind(resumen,t(tapply(soluGen1$aggr_strata$STRATO,soluGen1$aggr_strata$DOM1,function(x) length(unique(x)))))
-  prueba$resumen <- cbind(resumen,t(tapply(soluGen1$aggr_strata$SOLUZ,soluGen1$aggr_strata$DOM1,sum)))
+  prueba$resumen <- cbind(prueba$resumen,t(tapply(prueba$solu$aggr_strata$STRATO,prueba$solu$aggr_strata$DOM1,function(x) length(unique(x)))))
+  prueba$resumen <- cbind(prueba$resumen,t(tapply(prueba$solu$aggr_strata$SOLUZ,prueba$solu$aggr_strata$DOM1,sum)))
 
   colnames(prueba$resumen) <- c("mut_chance","elitism_rate","hNorte","hCentro","hSur","nNorte","nCentro","nSur")
   
-  prueba$resumen$H <- resumen$hNorte + resumen$hCentro + resumen$hSur
-  prueba$resumen$N <- resumen$nNorte + resumen$nCentro + resumen$nSur
+  prueba$resumen$H <- prueba$resumen$hNorte + prueba$resumen$hCentro + prueba$resumen$hSur
+  prueba$prueba$resumen$N <- prueba$resumen$nNorte + prueba$resumen$nCentro + prueba$resumen$nSur
 
   prueba$eval <- evalSolution(prueba$nuevoMarco,prueba$solu$aggr_strata,nsampl=100,writeFiles=TRUE)
 
   prueba$CVesperado <-read.csv("expected_cv.csv")
-  prueba$CVesperado <- cbind(CVesperado,CVobjetivo)
+  prueba$CVesperado <- cbind(prueba$CVesperado,CVobjetivo)
 
   return(prueba)
 }
 ### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
+# muestra <- selectSample(nuevoMarco1,prueba$solu$aggr_strata)
 ## Resumen
 # Total Pob
 # sum(muestra$WEIGHTS)
