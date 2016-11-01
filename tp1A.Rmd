@@ -59,7 +59,7 @@ Constatar la asimetría de la variable PO y presentar evidencia de la misma. Eva
 Una manera gráfica de constatar la asimetría es a través de un sencillo gráfico de densidad:
 ```{r grafico_asimetria}
 plot(density(POmarco))
-rug(PO, col= 'blue', ticksize = 0.1, lwd = 1)
+rug(POmarco, col= 'blue', ticksize = 0.1, lwd = 1)
 ```
 
 Aquí se puede ver claramente la asimetría positiva que presenta la variable PO en el Marco completo.
@@ -116,7 +116,7 @@ Una alternativa numérica, es computar el test de Breusch-Pagan de heterocedasti
 
 ### Enunciado
 
-Aceptando la evidencia del punto 1 estimar según los datos provistos los parámetros “beta”, “sig2” y “gamma” necesarios para atender el modelo lineal simple de discrepancia en el algoritmo de Kozak. Recordar que “stratification” permite modelar $Y_{i} = \beta X_{i} + \epsilon_{i}$ con $\epsilon_{i}\~N(0,\sigma_{i}^{2})$ y $\sigma_{i}^{2}=\sigma^{2}X_{i}^{\gamma}$ donde beta=$\beta$, sig2=$\sigma^{2}$ y gamma=$\gamma$ son parámetros que deben ser brindados por el usuario. 
+Aceptando la evidencia del punto 1 estimar según los datos provistos los parámetros “beta”, “sig2” y “gamma” necesarios para atender el modelo lineal simple de discrepancia en el algoritmo de Kozak. Recordar que “stratification” permite modelar $Y_{i} = \beta X_{i} + \epsilon_{i}$ con $\epsilon_{i} \sim N(0,\sigma_{i}^{2})$ y $\sigma_{i}^{2}=\sigma^{2}X_{i}^{\gamma}$ donde beta=$\beta$, sig2=$\sigma^{2}$ y gamma=$\gamma$ son parámetros que deben ser brindados por el usuario. 
 
 ### Respuesta
 
@@ -331,6 +331,31 @@ sample_n(muestra, 10)
 
 ### Enunciado
 
-Si se desea después de un año renovar el 20% de la muestra en los estratos donde no se censa, reteniendo parte de la muestra original y seleccionando a las nuevas unidades por MSA en cada estrato de $U_{h} - s_{h}$ , con $h = 1,...,H-1$ (el H es el *takeall*) y $s_{h}$ la muestra original en el estrato en cuestión. Proponer 2 alternativas para estimar la diferencia inter-anual $\hat{t}_yt − \hat{t}_{y(t−1)}$ entre dos totales de una misma característica. ¿Cómo estimaría las varianzas de dichos estimadores
+Si se desea después de un año renovar el 20% de la muestra en los estratos donde no se censa, reteniendo parte de la muestra original y seleccionando a las nuevas unidades por MSA en cada estrato de $U_{h} - s_{h}$ , con $h = 1,...,H-1$ (el H es el *takeall*) y $s_{h}$ la muestra original en el estrato en cuestión. Proponer 2 alternativas para estimar la diferencia inter-anual $\hat{t}_{yt} − \hat{t}_{y(t−1)}$ entre dos totales de una misma característica. ¿Cómo estimaría las varianzas de dichos estimadores
 
 ### Respuesta
+
+Siguiendo a Qualité y Tillé, si deseamos estimar específicamente la *diferencia* y no otras medidas relacionadas como el cambio relativo o el cociente entre los totales, tenemos fundamentalmente dos *approachs* posibles:
+
+1. Estimar la diferencia a partir de los totales muestrales en cada período (lo que ellos llaman *"difference of the cross-sectional estimators"*, o
+2. estimar la diferencia a partir de la "porción común" de las muestras.
+
+En el trabajo de los autores, se proveen fórmulas para calcular la diferencia entre dos estimadores de Horvitz-Thompson para los totales de dos características (o una misma observada en dos momentos en el tiempo, como es nuestro caso), bajo *diseños sin estratificar*. Para poder aplicarlas a nuestro caso de uso, deberemos hacer algunas modificaciones.
+
+Antes de proponer las alternativas, algunas definiciones.
+
+* Sean $s_{t}$ y $s_{t-1}$ las muestras tomadas en t y t-1, respectivamente.
+* Sean $N_{t} = N_{t-1} = N$ los tamaños (idénticos) de las muestras $s_{t}$ y $s_{t-1}$. En nuestro caso, $N=248$.
+* Similarmente, sean $n_{h,t} = n_{h,(t-1)} = n_{h}$ los tamaños de muestra por estrato para todo estrato h=1,...,H (en nuestro caso, $H = 5$).
+* Sean $s_{c}$ el "solapamiento" entre las muestras $s_{t}$ y $s_{t-1}$, $n_{h,c}$ el tamaño muestral por estrato compartido entre ambas, y $N_{c}$ el tamaño de $s_{c}$. En nuestro caso particular, para todo h < H, $n_{h,c} = 0.8 n_{h}$, y $n_{H,c} = n_{H}$
+
+#### Estimador a partir de los totales muestrales
+
+$\hat{\Delta} = \hat{Y_{t}} - \hat{Y_{t-1}}$
+
+donde $\hat{Y_{t}}=\sum\limits_{k \in s_{t}} 
+
+donde 
+
+
+* Sea $n_{t-1}$ el tamaño de la muestra 
