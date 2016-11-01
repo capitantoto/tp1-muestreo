@@ -428,37 +428,131 @@ La diferencia entre los tamaños de muestra propuestos por cada algoritmo es ver
 
 Viendo estos resultados, y considerando que la estratificación genética es muy "sintética" (agrupa segmentos discontinuos de la población subyacente), como asesor de los organizadores de la encuesta, recomendaría **mantener la estratificación base de Bethel, agrupando estratos continuos únicamente para eliminar aquellos que son inestables según el análisis del Ejercicio 2**. Este trabajo, sin embargo, cae ya fuera dela órbita de este Informe.
 
-## Ejercicio 6
+## Ejercicio 6 y 7
 
 ### Enunciado
 
 Presentar la tabla de conversión de los estratos originales en los definitivos en cada dominio señalando en la microestratificación cómo quedaron agrupados.
 
+Actualizar el marco muestral con los nuevos estratos.
+
 ### Respuesta
 
+El marco muestral fue actualizado con los nuevos estratos por la función `probarParametros`:
+
+```{r actualizar_marco, eval=FALSE}
+# ... más código ...
+prueba$nuevosEstratos <- updateStrata(resumenMarco, prueba$solu, writeFile=TRUE)
+prueba$nuevoMarco <- updateFrame(Marco.Agropecuario,prueba$nuevosEstratos)
+# ... aún más código...
+```
+Si se revisa el elemento `pruebas[[2]]$nuevosEstratos`, se peuden observar las relaciones entre los viejos estratos (`STRATO`) y los nuevos (por combinación de `DOM1` y `LABEL`).
+
+```{r algunos_nuevos_estratos}
+sample_n(pruebas[[2]]$nuevosEstratos[c("STRATO","DOM1","LABEL")],5)
+```
+
+Sin embargo, revisar a mano a relación entre una estratificación de 75 microestratos y otra de 40 "miniestratos" es hilar demasiado fino como para obtener información útil. En su lugar, proponemos utilizar algunas de las capacidades del package `dplyr`, que nos permite agrupar y resumir información de maneras convenientes. A continuación entonces, se encuentra el código para agrupar el nuevo Marco de modo que para cada uno de los 40 estratos derivados del algoritmo genético, veamos:
+
+* a qué `dominio` corresponde,
+* qué `nuevoIdEstrato` tiene dentro del dominio,
+* la población total dentro del nuevo estrato, y
+* a cuántos viejos estratos agrupa
+
+```{r resumen_nuevos_estratos}
+nm <- pruebas[[2]]$nuevoMarco
+grouped_nm <- group_by(nm, DOMAINVALUE, LABEL)
+sumario <- summarise(grouped_nm, pop = n(), no_estratos = n_distinct(STRATUM))
+sumario <- as.data.frame(sumario)
+colnames(sumario) <- c("dominio","nuevoIdEstrato","nuevoNh","cantEstratosAgrupados")
+sumario
+```
+
+Para finalizar, hacemos un histograma de la cantidad de microestratos que agrupa cada nuevo estrato, para hacernos una idea de cuánto hemos "comprimido" la estratificación original:
+
+```{r grafico_cant_estratos_agrupados}
+plot(hist(sumario$cantEstratosAgrupados))
+```
+
+## Ejercicio 8
+
+### Enunciado
+
+Evaluar el comportamiento de los CV y las estimaciones de cada variable objetivo en cada dominio a través de una simulación con 1000 muestras seleccionadas del marco muestral empleando el comando evalSolution() del Package. Interpretar y brindar una explicación de los resultados que exporta: cv.pdf, differences.pdf o differences.csv.
 
 ### Respuesta
 
+Ahora, mejoraremos la precisión de la evaluación hecha por `probarParametros` anteriormente para la estratificación elegida, esta vez con 1000 en lugar de 100 muestras al azar.
 
-```{r extras_fin}
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-#setwd("..")
+```{r evaluar_solucion, eval=FALSE}
+setwd("prueba2")
+# Evaluación de la solución
+pruebas[[2]]$eval <- evalSolution(pruebas[[2]]$nuevoMarco,pruebas[[2]]$solu$aggr_strata,nsampl=100,writeFiles=TRUE)
 
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,prueba$solu$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
+# CVs objetivos y CVs alcanzados en la evaluación
+pruebas[[2]]$CVesperado <-read.csv("expected_cv.csv")
+pruebas[[2]]$CVesperado <- cbind(pruebas[[2]]$CVesperado,CVobjetivo)
+setwd("..")
+pruebas[[2]]$CVesperado
+```
+
+Leyendo de la ayuda de `evalSolution`, podemos ver que:
+
+> First, the true values of the parameters are calculated from the frame. Then, for each sample the sampling estimates are calculated, together with the differences between them and the true values of the parameters. At the end, an estimate of the CV is produced for each target variable, in order to compare them with the precision constraints set at the beginning of the optimization process. If the flag 'writeFiles' is set to TRUE, boxplots of distribution of the CV's in the different domains are produced for each Y variable ('cv.pdf'), together with boxplot of the distributions of differences between estimates and values of the parameters in the population ('differences.pdf').
+
+Es decir, `differences.csv` posee 3000 filas, una por cada dominio y muestra tomada (3x1000=3000), y cinco columnas:
+* `dom`: el dominio en el que se calculan las diferencias entre los valores verdaderos de las variables objetivos y la muestra seleccionada,
+* `samp`: el número de muestra aleatoria de evaluación,
+* `diff[1|2|3]: la differencia entre el valor real y el obtenido en la muestra para la variable objetivo (1:SOJA, 2:TRIGO, 3:BOVINOS)
+
+A partir de esta información, se generan boxplots de las diferencias registradas en `differences.csv`. Como estas diferencias están expresadas en valores absolutos, su escala depende muchísimo del rango en que se encuentran los valores de la variable original, y no proveen, a simple vista, mucha información.
+
+El tercer archivo, `cv.pdf`, es más interesante, ya que ver el rango intercuartil del CV esperado por variable nos da una visión más acabada del comportamiento que de ellas podemos esperar. Lamentablemente, por alguna misteriosa razón, el output sólo incluye gráficos para los CV de las variables a estudiar en el dominio número 1 ("Norte").
+
+## Ejercicio 9
+
+### Enunciado
+
+Seleccionar  una  muestra  según  la  solución  definitiva  empleando  el  comando `selectSample` del Package.
+
+### Respuesta
+
+Aquí no hay mucho que hacer
+```{r seleccionar_muestra}
+muestra <- selectSample(pruebas[[2]]$nuevoMarco,pruebas[[2]]$solu$aggr_strata)
+```
+
+## Ejercicio 10
+
+### Enunciado
+
+Presentar una tabla resumen con las probabilidades $\pi_{k}$ y las $\pi_{kl}$ del diseño final adoptado. 
+
+### Respuesta
+
+Dado que el Marco Agropecuario tiene más de 16.000 entradas, y se nos pide una tabla **resumen** de las probabilidades de inclusión, no vamos a ofrecer aquí ni el vector con las 16.050 probabilidades de primer orden ni la matriz con las 16.050^2 probabilidades de segundo orden.
+
+En `pruebas[[2]]$solu$aggr_strata` podemos encontrar los tamaños poblacionales y por estrato que le corresponden a cada uno de los nuevos 40 estratos. A partir de ellos, y sabiendo que dentro de cada estrato los individuos de la muestra se eligen por MSA, es sencillo calcular las 40 $\pi_{k}$ por nuevos estratos.
+
+Un poco más complejo, es calcular las $\pi_{kl}$ de forma resumida, pues hay que considerar varios casos:
+
+1. si $k=l$, entonces $\pi_{kl}=\pi_{kk}=\pi_{k}$
+2. si $h(k) = h(l) = h \wedge k \neq l$, entonces $\pi_{kl}=\frac{n_{h}}{N_{h}}\frac{n_{h}-1}{N_{h}-1}
+3. si $h(k)\neq h(l)$, entonces $\pi_{kl}=\pi_{k}\pi_{l}$
+
+Dado que el caso 1 se puede observar en el vector de $\pi_{k}$'s, y el caso 2 se puede aproximar como $\pi_{k}^{2}$ cuando $n_{h}$ y $N_{h}$ son lo suficientemente grandes, consideramos que proveer el vector con las 40 $\pi_{k}$ y las 40x40 $\pi_{kl}$ del caso 3 son una aproximación suficiente a los requerimientos de este ejercicio. Eso, y en algún momento tengo que dejar de escribir y comenzar a editar este trabajo.
+
+```{r pik_y_pikl}
+aggr_strata <- pruebas[[2]]$solu$aggr_strata
+agr_strata$nh <- agr_strata$SOLUZ
+agr_strata$Nh <- agr_strata$N
+agr_strata$Pik <- agr_strata$nh / agr_strata$Nh
+head(agr_strata)
+
+vector_piks <- agr_strata$Pik
+matriz_pikls <- vector_piks %*% t(vector_piks)
+
+# Muestro un fragmento de los vectores:
+vector_piks[1:5]
+matriz_pikls[1:5,1:5]
 ```
