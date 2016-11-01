@@ -342,15 +342,16 @@ Siguiendo a Qualité y Tillé, si deseamos estimar específicamente la *diferenc
 
 En el trabajo de los autores, se proveen fórmulas para calcular la diferencia entre dos estimadores de Horvitz-Thompson para los totales de dos características (o una misma observada en dos momentos en el tiempo, como es nuestro caso), bajo *diseños sin estratificar*. Para poder aplicarlas a nuestro caso de uso, deberemos hacer las modificaciones necesarias para tomar en cuenta la estratificación propuesta. Esto va a llevar a una notación atiborrada, que intentaremos mantener tan clara como sea posible.
 
-* Cuando expresemos sumatorias sobre la característica objetivo, omitiremos los subíndices. Así, escribiremos $\sum_{U} y$ en lugar de $\sum{k \in U} y_{k}$. 
-* Hablaremos de $ t_{yt_{1}}$ y $t_{yt_{0}}$ en lugar de $t_{yt}$ y $t_{y(t-1)}$, para poder referirnos a ambos $t$ en general.
+* Cuando expresemos sumatorias sobre la característica objetivo, omitiremos los subíndices. Así, escribiremos $\sum\limits_{U} y$ en lugar de $\sum\limits_{k \in U} y_{k}$. 
+* Hablaremos de $t_{yt_{1}}$ y $t_{yt_{0}}$ en lugar de $t_{yt}$ y $t_{y(t-1)}$, para poder referirnos a ambos $t$ en general.
 * El símbolo $s$ puede resultar confuso, ya que en algunos casos se refiere a una muestra, y en otros al estimador de la varianza/covarianza para cierto conjunto de observaciones. En general, esta ambigüedad se resuelve teniendo en cuenta que siempre que $s$ aparezca debajo de $\sum$, será representando a una muestra, y siempre que aparezca en la línea principal de la ecuación, será como estimador.
 * Habrá diversos subíndices que pueden afectar el significado de $s$, $N$, $n$, $Y$, $y$ o $\bar{y}$. Cada uno de ellos indica una "segmentación" distinta de la población o la muestra:
-  + $t_{1}$ y $t_{0}$ (o $t$ en general) refieren a los momentos posterior o anterior en el tiempo,
-  + $c$ refiere únicamente a la fracción en común que tienen las muestras (para un mismo estrato o completas) en $t_{1}$ y $t_{0}$
-  + $h$ indica el estrato al que hacemos referencia.
+    + $t_{1}$ y $t_{0}$ (o $t$ en general) refieren a los momentos posterior o anterior en el tiempo,
+    + $c$ refiere únicamente a la fracción en común que tienen las muestras (para un mismo estrato o completas) en $t_{1}$ y $t_{0}$
+    + $h$ indica el estrato al que hacemos referencia.
 
 Por ejemplo, 
+
 * $s_{c,h}$ es la porción en común intertemporalmente de ambas muestras, dentro de un estrato $h$ particular, y
 * $\bar{y}_{t_{1},h}$ es la media de $y$ para el estrato $h$ en la muestra posterior ($t_{1}$).
 
@@ -369,7 +370,7 @@ Y
 
 $$ \bar{y}_{t,h} = \sum\limits_{s_{h,t}}\frac{y_{t}}{n_{h}} $$
 
-Para todo $t \in \{t_{1}, t_{0}$ y $h \in \{1,\dots,H\}$
+Para todo $t \in \{t_{1}, t_{0}\}$ y $h \in \{1,\dots,H\}$
 
 Si deseamos averiguar la varianza de este estimador, aprovechando que los $n_{c,h}$ (y por ende $N_{c}$) son conocidos y fijos entre $t_{1}$ y $t_{0}$, haremos:
 

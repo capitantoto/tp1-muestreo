@@ -432,16 +432,16 @@ muestra &lt;- getdata(MarcoAsignado,seleccion)</code></pre>
 # Algunos elementos de muestra
 sample_n(muestra, 10)</code></pre>
 <pre><code>##        Uk  PO        Pik Estrato ID_unit       Prob Stratum
-## 2978 3255  43 0.04844007       2    2978 0.04844007       2
-## 2243  338  33 0.04844007       2    2243 0.04844007       2
-## 2709 1896  34 0.04844007       2    2709 0.04844007       2
-## 1997 2278  26 0.04844007       2    1997 0.04844007       2
-## 3365  315  77 0.08972268       3    3365 0.08972268       3
-## 3782 1122  84 0.14141414       4    3782 0.14141414       4
-## 3606  333  48 0.08972268       3    3606 0.08972268       3
-## 3146 3315  51 0.08972268       3    3146 0.08972268       3
-## 3762 3652 103 0.14141414       4    3762 0.14141414       4
-## 3954 3978 650 1.00000000       5    3954 1.00000000       5</code></pre>
+## 2357 1545  42 0.04844007       2    2357 0.04844007       2
+## 3941 1436 607 1.00000000       5    3941 1.00000000       5
+## 3523  539  52 0.08972268       3    3523 0.08972268       3
+## 1327  608  12 0.02939633       1    1327 0.02939633       1
+## 986  2817  12 0.02939633       1     986 0.02939633       1
+## 2828 1044  35 0.04844007       2    2828 0.04844007       2
+## 3958 1720 608 1.00000000       5    3958 1.00000000       5
+## 3964 1152 605 1.00000000       5    3964 1.00000000       5
+## 3969  114 185 1.00000000       5    3969 1.00000000       5
+## 1644 2503  17 0.02939633       1    1644 0.02939633       1</code></pre>
 </div>
 </div>
 <div id="ejercicio-6" class="section level2">
@@ -457,20 +457,60 @@ sample_n(muestra, 10)</code></pre>
 <li>Estimar la diferencia a partir de los totales muestrales en cada período (lo que ellos llaman <em>“difference of the cross-sectional estimators”</em>, o</li>
 <li>estimar la diferencia a partir de la “porción común” de las muestras.</li>
 </ol>
-<p>En el trabajo de los autores, se proveen fórmulas para calcular la diferencia entre dos estimadores de Horvitz-Thompson para los totales de dos características (o una misma observada en dos momentos en el tiempo, como es nuestro caso), bajo <em>diseños sin estratificar</em>. Para poder aplicarlas a nuestro caso de uso, deberemos hacer algunas modificaciones.</p>
-<p>Antes de proponer las alternativas, algunas definiciones.</p>
+<p>En el trabajo de los autores, se proveen fórmulas para calcular la diferencia entre dos estimadores de Horvitz-Thompson para los totales de dos características (o una misma observada en dos momentos en el tiempo, como es nuestro caso), bajo <em>diseños sin estratificar</em>. Para poder aplicarlas a nuestro caso de uso, deberemos hacer las modificaciones necesarias para tomar en cuenta la estratificación propuesta. Esto va a llevar a una notación atiborrada, que intentaremos mantener tan clara como sea posible.</p>
 <ul>
-<li>Sean <span class="math inline">\(s_{t}\)</span> y <span class="math inline">\(s_{t-1}\)</span> las muestras tomadas en t y t-1, respectivamente.</li>
-<li>Sean <span class="math inline">\(N_{t} = N_{t-1} = N\)</span> los tamaños (idénticos) de las muestras <span class="math inline">\(s_{t}\)</span> y <span class="math inline">\(s_{t-1}\)</span>. En nuestro caso, <span class="math inline">\(N=248\)</span>.</li>
-<li>Similarmente, sean <span class="math inline">\(n_{h,t} = n_{h,(t-1)} = n_{h}\)</span> los tamaños de muestra por estrato para todo estrato h=1,…,H (en nuestro caso, <span class="math inline">\(H = 5\)</span>).</li>
-<li>Sean <span class="math inline">\(s_{c}\)</span> el “solapamiento” entre las muestras <span class="math inline">\(s_{t}\)</span> y <span class="math inline">\(s_{t-1}\)</span>, <span class="math inline">\(n_{h,c}\)</span> el tamaño muestral por estrato compartido entre ambas, y <span class="math inline">\(N_{c}\)</span> el tamaño de <span class="math inline">\(s_{c}\)</span>. En nuestro caso particular, para todo h&lt;H, <span class="math inline">\(n_{h,c} = 0.8 n_{h}\)</span>, y <span class="math inline">\(n_{H,c} = n_{H}\)</span></li>
+<li>Cuando expresemos sumatorias sobre la característica objetivo, omitiremos los subíndices. Así, escribiremos <span class="math inline">\(\sum\limits_{U} y\)</span> en lugar de <span class="math inline">\(\sum\limits\_{k \in U} y_{k}\)</span>.</li>
+<li>Hablaremos de $ t_{yt_{1}}$ y <span class="math inline">\(t_{yt_{0}}\)</span> en lugar de <span class="math inline">\(t_{yt}\)</span> y <span class="math inline">\(t_{y(t-1)}\)</span>, para poder referirnos a ambos <span class="math inline">\(t\)</span> en general.</li>
+<li>El símbolo <span class="math inline">\(s\)</span> puede resultar confuso, ya que en algunos casos se refiere a una muestra, y en otros al estimador de la varianza/covarianza para cierto conjunto de observaciones. En general, esta ambigüedad se resuelve teniendo en cuenta que siempre que <span class="math inline">\(s\)</span> aparezca debajo de <span class="math inline">\(\sum\)</span>, será representando a una muestra, y siempre que aparezca en la línea principal de la ecuación, será como estimador.</li>
+<li>Habrá diversos subíndices que pueden afectar el significado de <span class="math inline">\(s\)</span>, <span class="math inline">\(N\)</span>, <span class="math inline">\(n\)</span>, <span class="math inline">\(Y\)</span>, <span class="math inline">\(y\)</span> o <span class="math inline">\(\bar{y}\)</span>. Cada uno de ellos indica una “segmentación” distinta de la población o la muestra:</li>
+<li><span class="math inline">\(t_{1}\)</span> y <span class="math inline">\(t_{0}\)</span> (o <span class="math inline">\(t\)</span> en general) refieren a los momentos posterior o anterior en el tiempo,</li>
+<li><span class="math inline">\(c\)</span> refiere únicamente a la fracción en común que tienen las muestras (para un mismo estrato o completas) en <span class="math inline">\(t_{1}\)</span> y <span class="math inline">\(t_{0}\)</span></li>
+<li><span class="math inline">\(h\)</span> indica el estrato al que hacemos referencia.</li>
 </ul>
+<p>Por ejemplo, * <span class="math inline">\(s_{c,h}\)</span> es la porción en común intertemporalmente de ambas muestras, dentro de un estrato <span class="math inline">\(h\)</span> particular, y * <span class="math inline">\(\bar{y}_{t_{1},h}\)</span> es la media de <span class="math inline">\(y\)</span> para el estrato <span class="math inline">\(h\)</span> en la muestra posterior (<span class="math inline">\(t_{1}\)</span>).</p>
+<p>Recordemos entonces, que buscamos estimadores de <span class="math inline">\(\Delta = t_{yt_{1}} - t_{yt_{0}}\)</span> donde <span class="math inline">\(t_{y_{t}} = \sum_{U} y_{t}\)</span> para <span class="math inline">\(t \in \{t_{1}, t_{0}\)</span></p>
 <div id="estimador-a-partir-de-los-totales-muestrales" class="section level4">
 <h4>Estimador a partir de los totales muestrales</h4>
-<ul>
-<li>Sea <span class="math inline">\(n_{t-1}\)</span> el tamaño de la muestra</li>
-</ul>
+<p><span class="math display">\[\hat{\Delta} = \hat{Y_{t_{1}}} - \hat{Y_{t_{0}}}\]</span></p>
+<p>Donde</p>
+<p><span class="math display">\[ \hat{Y_{t}} = N \sum\limits_{h=1}^{H}\left[\frac{N_{h}}{N}\bar{y}_{t,h}\right] \]</span></p>
+<p>Y</p>
+<p><span class="math display">\[ \bar{y}_{t,h} = \sum\limits_{s_{h,t}}\frac{y_{t}}{n_{h}} \]</span></p>
+<p>Para todo <span class="math inline">\(t \in \{t_{1}, t_{0}\)</span> y <span class="math inline">\(h \in \{1,\dots,H\}\)</span></p>
+<p>Si deseamos averiguar la varianza de este estimador, aprovechando que los <span class="math inline">\(n_{c,h}\)</span> (y por ende <span class="math inline">\(N_{c}\)</span>) son conocidos y fijos entre <span class="math inline">\(t_{1}\)</span> y <span class="math inline">\(t_{0}\)</span>, haremos:</p>
+<p><span class="math display">\[
+\begin{align}
+\widehat{Var}(\hat{\Delta}) &amp;= N^2 \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{1}{n_{h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},h}+s^{2}_{t_{0},h}\right)\right] \\ 
+&amp;- 2 N^{2} \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{n_{c,h}}{n^{2}_{h}}-\frac{1}{N_{h}}\right)s_{t_{1},t_{0}c,h}\right] 
+\end{align}
+\]</span></p>
+<p>Donde</p>
+<p><span class="math display">\[
+\begin{align}
+s^{2}_{t,h} &amp;= \frac{1}{n_{h}-1}  \sum\limits_{s_{h,t}}\left(y_{t} - \bar{y}_{t,h}\right)^{2} \\
+s_{t_{1},t_{0},c,h} &amp;= \frac{1}{n_{c,h}-1}  \sum\limits_{s_{c,h}}\left(y_{t_{1}} - \bar{y}_{t_{1},c,h}\right)\left(y_{t_{0}} - \bar{y}_{t_{0},c,h}\right)
+\end{aign}
+\]</span></p>
+<p>Y</p>
+<p><span class="math display">\[ \bar{y}_{t,c,h} = \sum\limits_{s_{c,h}}\frac{y_{t}}{n_{c,h}} \]</span></p>
 </div>
+</div>
+<div id="estimador-por-la-porcion-comun" class="section level3">
+<h3>Estimador por la porción común</h3>
+<p>Otra alternativa, consiste en medir la variación promedio en la porción común de las muestras posterior y anterior, y luego multiplicar por el tamaño de la muestra completa (hecha las correspondientes ponderaciones por estrato). En este caso,</p>
+<p><span class="math display">\[\hat{\Delta}_{c} = N \left(\bar{y}_{t_{1},c} - \bar{y}_{t_{0},c}\right)\]</span></p>
+<p>Donde</p>
+<p><span class="math display">\[ \bar{y}_{t,c}=N_{c} \sum\limits_{h=1}^{H}\left[\frac{N_{c,h}}{N_{h}}\bar{y}_{t,c,h}\right] \]</span></p>
+<p>Y <span class="math inline">\(\bar{y}_{t,c,h}\)</span> fue definido previamente.</p>
+<p>Para estimar la varianza de <span class="math inline">\(\hat{\Delta}_{c}\)</span>, tenemos:</p>
+<p><span class="math display">\[
+\widehat{Var}(\hat{\Delta}_{c}) = N^2 \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{1}{n_{c,h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},c,h}+s^{2}_{t_{0},c,h}- 2 s_{t_{1},t_{0}c,h}\right)\right]
+\]</span></p>
+<p>Donde</p>
+<p><span class="math display">\[
+s^{2}_{t,c,h} = \frac{1}{n_{c,h}-1}  \sum\limits_{s_{c,h}}\left(y_{t} - \bar{y}_{t,c,h}\right)^{2}
+\]</span></p>
+<p>Y <span class="math inline">\(s_{t_{1},t_{0}c,h}\)</span> fue definido previamente.</p>
 </div>
 </div>
 </div>
