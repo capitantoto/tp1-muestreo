@@ -340,22 +340,85 @@ Siguiendo a Qualité y Tillé, si deseamos estimar específicamente la *diferenc
 1. Estimar la diferencia a partir de los totales muestrales en cada período (lo que ellos llaman *"difference of the cross-sectional estimators"*, o
 2. estimar la diferencia a partir de la "porción común" de las muestras.
 
-En el trabajo de los autores, se proveen fórmulas para calcular la diferencia entre dos estimadores de Horvitz-Thompson para los totales de dos características (o una misma observada en dos momentos en el tiempo, como es nuestro caso), bajo *diseños sin estratificar*. Para poder aplicarlas a nuestro caso de uso, deberemos hacer algunas modificaciones.
+En el trabajo de los autores, se proveen fórmulas para calcular la diferencia entre dos estimadores de Horvitz-Thompson para los totales de dos características (o una misma observada en dos momentos en el tiempo, como es nuestro caso), bajo *diseños sin estratificar*. Para poder aplicarlas a nuestro caso de uso, deberemos hacer las modificaciones necesarias para tomar en cuenta la estratificación propuesta. Esto va a llevar a una notación atiborrada, que intentaremos mantener tan clara como sea posible.
 
-Antes de proponer las alternativas, algunas definiciones.
+* Cuando expresemos sumatorias sobre la característica objetivo, omitiremos los subíndices. Así, escribiremos $\sum_{U} y$ en lugar de $\sum{k \in U} y_{k}$. 
+* Hablaremos de $ t_{yt_{1}}$ y $t_{yt_{0}}$ en lugar de $t_{yt}$ y $t_{y(t-1)}$, para poder referirnos a ambos $t$ en general.
+* El símbolo $s$ puede resultar confuso, ya que en algunos casos se refiere a una muestra, y en otros al estimador de la varianza/covarianza para cierto conjunto de observaciones. En general, esta ambigüedad se resuelve teniendo en cuenta que siempre que $s$ aparezca debajo de $\sum$, será representando a una muestra, y siempre que aparezca en la línea principal de la ecuación, será como estimador.
+* Habrá diversos subíndices que pueden afectar el significado de $s$, $N$, $n$, $Y$, $y$ o $\bar{y}$. Cada uno de ellos indica una "segmentación" distinta de la población o la muestra:
+  + $t_{1}$ y $t_{0}$ (o $t$ en general) refieren a los momentos posterior o anterior en el tiempo,
+  + $c$ refiere únicamente a la fracción en común que tienen las muestras (para un mismo estrato o completas) en $t_{1}$ y $t_{0}$
+  + $h$ indica el estrato al que hacemos referencia.
 
-* Sean $s_{t}$ y $s_{t-1}$ las muestras tomadas en t y t-1, respectivamente.
-* Sean $N_{t} = N_{t-1} = N$ los tamaños (idénticos) de las muestras $s_{t}$ y $s_{t-1}$. En nuestro caso, $N=248$.
-* Similarmente, sean $n_{h,t} = n_{h,(t-1)} = n_{h}$ los tamaños de muestra por estrato para todo estrato h=1,...,H (en nuestro caso, $H = 5$).
-* Sean $s_{c}$ el "solapamiento" entre las muestras $s_{t}$ y $s_{t-1}$, $n_{h,c}$ el tamaño muestral por estrato compartido entre ambas, y $N_{c}$ el tamaño de $s_{c}$. En nuestro caso particular, para todo h < H, $n_{h,c} = 0.8 n_{h}$, y $n_{H,c} = n_{H}$
+Por ejemplo, 
+* $s_{c,h}$ es la porción en común intertemporalmente de ambas muestras, dentro de un estrato $h$ particular, y
+* $\bar{y}_{t_{1},h}$ es la media de $y$ para el estrato $h$ en la muestra posterior ($t_{1}$).
+
+
+Recordemos entonces, que buscamos estimadores de $\Delta = t_{yt_{1}} - t_{yt_{0}}$ donde $t_{y_{t}} = \sum_{U} y_{t}$ para $t \in \{t_{1}, t_{0}$
 
 #### Estimador a partir de los totales muestrales
 
-$\hat{\Delta} = \hat{Y_{t}} - \hat{Y_{t-1}}$
+$$\hat{\Delta} = \hat{Y_{t_{1}}} - \hat{Y_{t_{0}}}$$
 
-donde $\hat{Y_{t}}=\sum\limits_{k \in s_{t}} 
+Donde
 
-donde 
+$$ \hat{Y_{t}} = N \sum\limits_{h=1}^{H}\left[\frac{N_{h}}{N}\bar{y}_{t,h}\right] $$
+
+Y
+
+$$ \bar{y}_{t,h} = \sum\limits_{s_{h,t}}\frac{y_{t}}{n_{h}} $$
+
+Para todo $t \in \{t_{1}, t_{0}$ y $h \in \{1,\dots,H\}$
+
+Si deseamos averiguar la varianza de este estimador, aprovechando que los $n_{c,h}$ (y por ende $N_{c}$) son conocidos y fijos entre $t_{1}$ y $t_{0}$, haremos:
+
+$$
+\begin{align}
+\widehat{Var}(\hat{\Delta}) &= N^2 \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{1}{n_{h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},h}+s^{2}_{t_{0},h}\right)\right] \\ 
+&- 2 N^{2} \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{n_{c,h}}{n^{2}_{h}}-\frac{1}{N_{h}}\right)s_{t_{1},t_{0}c,h}\right] 
+\end{align}
+$$
 
 
-* Sea $n_{t-1}$ el tamaño de la muestra 
+Donde 
+
+$$
+\begin{align}
+s^{2}_{t,h} &= \frac{1}{n_{h}-1}  \sum\limits_{s_{h,t}}\left(y_{t} - \bar{y}_{t,h}\right)^{2} \\
+s_{t_{1},t_{0},c,h} &= \frac{1}{n_{c,h}-1}  \sum\limits_{s_{c,h}}\left(y_{t_{1}} - \bar{y}_{t_{1},c,h}\right)\left(y_{t_{0}} - \bar{y}_{t_{0},c,h}\right)
+\end{aign}
+$$
+
+Y
+
+$$ \bar{y}_{t,c,h} = \sum\limits_{s_{c,h}}\frac{y_{t}}{n_{c,h}} $$
+
+### Estimador por la porción común
+
+Otra alternativa, consiste en medir la variación promedio en la porción común de las muestras posterior y anterior, y luego multiplicar por el tamaño de la muestra completa (hecha las correspondientes ponderaciones por estrato). En este caso,
+
+$$\hat{\Delta}_{c} = N \left(\bar{y}_{t_{1},c} - \bar{y}_{t_{0},c}\right)$$
+
+Donde
+
+$$ \bar{y}_{t,c}=N_{c} \sum\limits_{h=1}^{H}\left[\frac{N_{c,h}}{N_{h}}\bar{y}_{t,c,h}\right] $$
+
+Y $\bar{y}_{t,c,h}$ fue definido previamente.
+
+Para estimar la varianza de $\hat{\Delta}_{c}$, tenemos:
+
+$$
+\widehat{Var}(\hat{\Delta}_{c}) = N^2 \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{1}{n_{c,h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},c,h}+s^{2}_{t_{0},c,h}- 2 s_{t_{1},t_{0}c,h}\right)\right]
+$$
+
+Donde
+
+$$
+s^{2}_{t,c,h} = \frac{1}{n_{c,h}-1}  \sum\limits_{s_{c,h}}\left(y_{t} - \bar{y}_{t,c,h}\right)^{2}
+$$
+
+Y $s_{t_{1},t_{0}c,h}$ fue definido previamente.
+
+
+
