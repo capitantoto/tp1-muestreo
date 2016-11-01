@@ -536,7 +536,7 @@ Seleccionar  una  muestra  según  la  solución  definitiva  empleando  el  com
 
 Aquí no hay mucho que hacer más que:  
 ```{r seleccionar_muestra}
-muestra <- selectSample(pruebas[[2]]$nuevoMarco,pruebas[[2]]$solu$aggr_strata)
+muestra <- selectSample(pruebas[[2]]$nuevoMarco,pruebas[[2]]$solu$aggr_strata, writeFiles=TRUE)
 ```
 
 ## Ejercicio 10
