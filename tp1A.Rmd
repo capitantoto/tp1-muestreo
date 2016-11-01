@@ -253,16 +253,24 @@ K5$CV <- CVestratos(K5)
 Finalmente, aunque de manera un poco verborrágica, estamos en condiciones de proveer toda la información solicitada:
 ```{r descripcion_estratos_kozak, echo=FALSE}
 # K2: 2 estratos
+print("Detalles de la optimizacion para 2 estratos")
 K2
+print("Coeficientes de variación por estrato (de 1 a 2, el "0" corresponde al 'takeall'")
 K2$CV
 # K3: 3 estratos
+print("Detalles de la optimizacion para 3 estratos")
 K3
+print("Coeficientes de variación por estrato (de 1 a 3, el "0" corresponde al 'takeall'")
 K3$CV
 # K4: 4 estratos
+print("Detalles de la optimizacion para 4 estratos")
 K4
+print("Coeficientes de variación por estrato (de 1 a 4, el "0" corresponde al 'takeall'")
 K4$CV
 # K5: 5 estratos
+print("Detalles de la optimizacion para 5 estratos")
 K5
+print("Coeficientes de variación por estrato (de 1 a 5, el "0" corresponde al 'takeall'")
 K5$CV
 ```
 
