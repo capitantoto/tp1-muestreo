@@ -1,5 +1,14 @@
 ---
-output: html_document
+title: 'MPF: Trabajo Práctico 1, Parte B'
+author: "Gonzalo Barrera Borla, Gerardo Mitas"
+date: "November 1, 2016"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 ```{r knitr_options, include=FALSE}
@@ -7,15 +16,6 @@ library(knitr)
 opts_chunk$set(fig.width=12, fig.height=6, message=FALSE)
 load("parteB.RData")
 ```
-
-
-# Trabajo Práctico 1, Parte B
-# Muestreo en poblaciones finitas 2016
-
-* 1 de Noviembre de 2016
-* Profesor: Gerardo Mitas
-* Alumno: Gonzalo Barrera Borla
-
 
 ## Setup Inicial
 
@@ -109,9 +109,9 @@ CV3 <- 0.05
 CVSur <- data.frame(DOM,CV1,CV2,CV3,domainvalue)
 ```
 
-Como último paso de preparación, computamos la información auxiliar que el algoritmo exige para ejecutar la optimización
+Como último paso de preparación, computamos la información auxiliar que el algoritmo exige para ejecutar la optimización.
 
-```{r build_strata, echo=FALSE}
+```{r build_strata}
 resumenNorte <- buildStrataDF(Norte)
 resumenCentro <- buildStrataDF(Centro)
 resumenSur <- buildStrataDF(Sur)
@@ -185,32 +185,47 @@ tablaEstratosSur <- tablaEstratos(soluSur)
 ```
 
 #### Dominio "Norte"
-```{r resultados_norte, echo=FALSE}
-print("CVs alcanzados versus esperados:")
+
+##### CVs alcanzados versus esperados
+```{r, echo=FALSE}
 tablaCVNorte
-print("Resumen por estrato:")
+```
+##### Resumen por estrato
+```{r, echo=FALSE}
 tablaEstratosNorte
-print("Lista de estratos inestables:")
+```
+##### Lista de estratos inestables:
+```{r, echo=FALSE}
 malosEstratos(tablaEstratosNorte)
 ```
 
-#### Dominio "centro"
-```{r resultados_centro, echo=FALSE}
-print("CVs alcanzados versus esperados:")
+#### Dominio "Centro"
+
+##### CVs alcanzados versus esperados
+```{r, echo=FALSE}
 tablaCVCentro
-print("Resumen por estrato:")
+```
+##### Resumen por estrato
+```{r, echo=FALSE}
 tablaEstratosCentro
-print("Lista de estratos inestables:")
+```
+##### Lista de estratos inestables:
+```{r, echo=FALSE}
 malosEstratos(tablaEstratosCentro)
 ```
 
 #### Dominio "Sur"
-```{r resultados_sur, echo=FALSE}
-print("CVs alcanzados versus esperados:")
+
+##### CVs alcanzados versus esperados
+```{r, echo=FALSE}
 tablaCVSur
-print("Resumen por estrato:")
+```
+##### Resumen por estrato
+```{r, echo=FALSE}
 tablaEstratosSur
-print("Lista de estratos inestables:")
+```
+##### Lista de estratos inestables:
+```{r, echo=FALSE}
 malosEstratos(tablaEstratosSur)
 ```
 
@@ -229,7 +244,7 @@ Marco.Agropecuario$X3 <- as.factor(Marco.Agropecuario$REGION)
 Marco.Agropecuario$domainvalue <- Marco.Agropecuario$REGION
 ```
 
-Para ejecutar la optimización por algoritmo genético, debemos pasar, al igual que a `bethel`, los resltados de `buildstrata` junto con una tabla con las precisiones por variable objetivo y dominio:
+Para ejecutar la optimización por algoritmo genético, debemos pasar, al igual que a `bethel`, los resultados de `buildstrata` junto con una tabla con las precisiones por variable objetivo y dominio:
 
 ```{r preparacion_algo_genetico, echo=FALSE}
 # Información auxiliar por variable estratificadora
@@ -369,7 +384,7 @@ Proponer a su criterio una estratificación de las estudiadas como “definitiva
 Utilizando el dataframe `resumen` que devuelve, entre otros, `probarParametros`, podemos comparar rápidamente los resultados de nuestras seis corrida:
 
 ```{r comparar_corridas, echo=FALSE}
-comparacion_corridas a<- rbind(pruebas[[1]]$resumen,
+comparacion_corridas <- rbind(pruebas[[1]]$resumen,
 			       pruebas[[2]]$resumen,
 			       pruebas[[3]]$resumen,
 			       pruebas[[4]]$resumen,
@@ -378,9 +393,10 @@ comparacion_corridas a<- rbind(pruebas[[1]]$resumen,
 comparacion_corridas
 ```
 
-De esta comparación, lo primera que llama la atención, es que $N$ es básicamente idéntico para las seis pruebas: la razón entre el menor y mayor valor es de $5565/5549=1.0029$, o un 0,3%.
+De esta comparación, lo primera que llama la atención, es que $N$ es básicamente idéntico para las seis pruebas: la razón entre el menor y mayor valor es de $5565/5549=1.0029$, una diferencia de 0,3%.
 
 Lo que no es evidente a partir de esta tabla, es si todos los N se parecen tanto entre sí porque:
+
 * efectivamente estamos en o cerca del mínimo global (y no es posible obtener los CV deseados con un N menor),
 * hemos sido muy tímidos en la exploración de parámetros, o
 * la estratificación propuesta no está aportando demasiado a la reducción del $N$ global en comparación con un método menos sofisticado.
@@ -390,13 +406,13 @@ También es interesante notar que ,aunque puede ser pura coincidencia (pues todo
 Obervemos ahora los gráfico de convergencia por dominio:
 
 #### Convergencia Dominio Norte
-![Convergencia Dominio Norte](prueba2/plotdom1.pdf)
+![Convergencia Dominio Norte](prueba2/plotdom1-1.png)
 
 #### Convergencia Dominio Centro
-![Convergencia Dominio Centro](prueba2/plotdom2.pdf)
+![Convergencia Dominio Centro](prueba2/plotdom2-1.png)
 
 #### Convergencia Dominio Sur
-![Convergencia Dominio Sur](prueba2/plotdom3.pdf)
+![Convergencia Dominio Sur](prueba2/plotdom3-1.png)
 
 Es destacable que en los dominios Norte y Centro, que son por mucho los más extensos, el mínimo costo de cada población disminuye ínfimamente o directamente no disminuye de una corrida a la siguiente, mientras que el promedio ni siquiera pareciese estar convergiendo.
 
@@ -468,10 +484,10 @@ colnames(sumario) <- c("dominio","nuevoIdEstrato","nuevoNh","cantEstratosAgrupad
 sumario
 ```
 
-Para finalizar, hacemos un histograma de la cantidad de microestratos que agrupa cada nuevo estrato, para hacernos una idea de cuánto hemos "comprimido" la estratificación original:
+Para finalizar, hacemos un tabla con la cantidad de microestratos que agrupa cada nuevo estrato, para hacernos una idea de cuánto hemos "comprimido" la estratificación original:
 
 ```{r grafico_cant_estratos_agrupados}
-plot(hist(sumario$cantEstratosAgrupados))
+table(sumario$cantEstratosAgrupados)
 ```
 
 ## Ejercicio 8
@@ -501,9 +517,10 @@ Leyendo de la ayuda de `evalSolution`, podemos ver que:
 > First, the true values of the parameters are calculated from the frame. Then, for each sample the sampling estimates are calculated, together with the differences between them and the true values of the parameters. At the end, an estimate of the CV is produced for each target variable, in order to compare them with the precision constraints set at the beginning of the optimization process. If the flag 'writeFiles' is set to TRUE, boxplots of distribution of the CV's in the different domains are produced for each Y variable ('cv.pdf'), together with boxplot of the distributions of differences between estimates and values of the parameters in the population ('differences.pdf').
 
 Es decir, `differences.csv` posee 3000 filas, una por cada dominio y muestra tomada (3x1000=3000), y cinco columnas:
+
 * `dom`: el dominio en el que se calculan las diferencias entre los valores verdaderos de las variables objetivos y la muestra seleccionada,
 * `samp`: el número de muestra aleatoria de evaluación,
-* `diff[1|2|3]: la differencia entre el valor real y el obtenido en la muestra para la variable objetivo (1:SOJA, 2:TRIGO, 3:BOVINOS)
+* `diff[1|2|3]`: la differencia entre el valor real y el obtenido en la muestra para la variable objetivo (1:SOJA, 2:TRIGO, 3:BOVINOS)
 
 A partir de esta información, se generan boxplots de las diferencias registradas en `differences.csv`. Como estas diferencias están expresadas en valores absolutos, su escala depende muchísimo del rango en que se encuentran los valores de la variable original, y no proveen, a simple vista, mucha información.
 
@@ -517,7 +534,7 @@ Seleccionar  una  muestra  según  la  solución  definitiva  empleando  el  com
 
 ### Respuesta
 
-Aquí no hay mucho que hacer
+Aquí no hay mucho que hacer más que:  
 ```{r seleccionar_muestra}
 muestra <- selectSample(pruebas[[2]]$nuevoMarco,pruebas[[2]]$solu$aggr_strata)
 ```
@@ -537,17 +554,16 @@ En `pruebas[[2]]$solu$aggr_strata` podemos encontrar los tamaños poblacionales 
 Un poco más complejo, es calcular las $\pi_{kl}$ de forma resumida, pues hay que considerar varios casos:
 
 1. si $k=l$, entonces $\pi_{kl}=\pi_{kk}=\pi_{k}$
-2. si $h(k) = h(l) = h \wedge k \neq l$, entonces $\pi_{kl}=\frac{n_{h}}{N_{h}}\frac{n_{h}-1}{N_{h}-1}
+2. si $h(k) = h(l) = h$ y $k \neq l$, entonces $\pi_{kl}=\frac{n_{h}}{N_{h}}\frac{n_{h}-1}{N_{h}-1}$
 3. si $h(k)\neq h(l)$, entonces $\pi_{kl}=\pi_{k}\pi_{l}$
 
-Dado que el caso 1 se puede observar en el vector de $\pi_{k}$'s, y el caso 2 se puede aproximar como $\pi_{k}^{2}$ cuando $n_{h}$ y $N_{h}$ son lo suficientemente grandes, consideramos que proveer el vector con las 40 $\pi_{k}$ y las 40x40 $\pi_{kl}$ del caso 3 son una aproximación suficiente a los requerimientos de este ejercicio. Eso, y en algún momento tengo que dejar de escribir y comenzar a editar este trabajo.
+Dado que el caso 1 se puede observar en el vector de $\pi_{k}$'s, y el caso 2 se puede aproximar como el caso 3 cuando $n_{h}$ y $N_{h}$ son lo suficientemente grandes, consideramos que proveer el vector con las 40 $\pi_{k}$ y las 40x40 $\pi_{kl}$ del caso 3 son una aproximación suficiente a los requerimientos de este ejercicio. Eso, y en algún momento tengo que dejar de escribir y comenzar a editar este trabajo.
 
 ```{r pik_y_pikl}
-aggr_strata <- pruebas[[2]]$solu$aggr_strata
+agr_strata <- pruebas[[2]]$solu$aggr_strata
 agr_strata$nh <- agr_strata$SOLUZ
 agr_strata$Nh <- agr_strata$N
 agr_strata$Pik <- agr_strata$nh / agr_strata$Nh
-head(agr_strata)
 
 vector_piks <- agr_strata$Pik
 matriz_pikls <- vector_piks %*% t(vector_piks)
