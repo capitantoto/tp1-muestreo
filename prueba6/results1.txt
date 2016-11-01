@@ -18,5 +18,5 @@ Elitism rate in GA generation:  0.2
 Chance to add strata to maximum:  0.01
 Allocation with real numbers instead of integers:  FALSE
  *** Sample cost:  2196
- *** Number of strata:  13
+ *** Number of strata:  18
 ...written output to outstrata1.txt

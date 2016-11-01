@@ -17,6 +17,6 @@ Mutation chance in GA generation:  0.2
 Elitism rate in GA generation:  0.2
 Chance to add strata to maximum:  0.01
 Allocation with real numbers instead of integers:  FALSE
- *** Sample cost:  3071
- *** Number of strata:  13
+ *** Sample cost:  3074
+ *** Number of strata:  12
 ...written output to outstrata2.txt
