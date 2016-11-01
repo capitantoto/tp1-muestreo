@@ -168,3 +168,5 @@ seleccion <- strata(MarcoAsignado,
 muestra <- getdata(MarcoAsignado,seleccion)
 
 write.csv(muestra, file = 'data/muestraA.csv')
+
+save.image(file = ".RDataParteA")
