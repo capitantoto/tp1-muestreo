@@ -1,18 +1,20 @@
 ---
-output: html_document
+title: 'MPF: Trabajo Práctico 1, Parte A'
+author: "Gonzalo Barrera Borla, Gerardo Mitas"
+date: "November 1, 2016"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    toc: yes
+    toc_depth: 2
 ---
 
 ```{r knitr_options, include=FALSE}
 library(knitr)
 opts_chunk$set(fig.width=12, fig.height=6, message=FALSE)
 ```
-
-# Trabajo Práctico 1, Parte A
-# Muestreo en poblaciones finitas 2016
-
-* 31 de Octubre de 2016
-* Profesor: Gerardo Mitas
-* Alumno: Gonzalo Barrera Borla
 
 ## Setup Inicial
 
@@ -251,26 +253,44 @@ K4$CV <- CVestratos(K4)
 K5$CV <- CVestratos(K5)
 ```
 Finalmente, aunque de manera un poco verborrágica, estamos en condiciones de proveer toda la información solicitada:
-```{r descripcion_estratos_kozak, echo=FALSE}
-# K2: 2 estratos
-print("Detalles de la optimizacion para 2 estratos")
+
+#### Detalles de la optimizacion para 2 estratos
+```{r, echo=FALSE}
 K2
-print("Coeficientes de variación por estrato (de 1 a 2, el "0" corresponde al 'takeall'")
+```
+
+#### Coeficientes de variación para 2 estratos
+El '0' final corresponde al último estrato, 'takeall'.
+```{r, echo=FALSE}
 K2$CV
-# K3: 3 estratos
-print("Detalles de la optimizacion para 3 estratos")
+```
+
+#### Detalles de la optimizacion para 3 estratos
+```{r, echo=FALSE}
 K3
-print("Coeficientes de variación por estrato (de 1 a 3, el "0" corresponde al 'takeall'")
+```
+
+#### Coeficientes de variación para 3 estratos
+```{r, echo=FALSE}
 K3$CV
-# K4: 4 estratos
-print("Detalles de la optimizacion para 4 estratos")
+```
+
+#### Detalles de la optimizacion para 4 estratos
+```{r, echo=FALSE}
 K4
-print("Coeficientes de variación por estrato (de 1 a 4, el "0" corresponde al 'takeall'")
+```
+
+#### Coeficientes de variación para 4 estratos
+```{r, echo=FALSE}
 K4$CV
-# K5: 5 estratos
-print("Detalles de la optimizacion para 5 estratos")
+```
+#### Detalles de la optimizacion para 5 estratos
+```{r, echo=FALSE}
 K5
-print("Coeficientes de variación por estrato (de 1 a 5, el "0" corresponde al 'takeall'")
+```
+
+#### Coeficientes de variación para 5 estratos
+```{r, echo=FALSE}
 K5$CV
 ```
 
@@ -403,7 +423,7 @@ Y
 
 $$ \bar{y}_{t,c,h} = \sum\limits_{s_{c,h}}\frac{y_{t}}{n_{c,h}} $$
 
-### Estimador por la porción común
+#### Estimador por la porción común
 
 Otra alternativa, consiste en medir la variación promedio en la porción común de las muestras posterior y anterior, y luego multiplicar por el tamaño de la muestra completa (hecha las correspondientes ponderaciones por estrato). En este caso,
 
