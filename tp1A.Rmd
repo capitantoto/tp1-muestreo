@@ -4,7 +4,7 @@ output: html_document
 
 ```{r knitr_options, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=12, fig.height=9, message=FALSE)
+opts_chunk$set(fig.width=12, fig.height=6, message=FALSE)
 ```
 
 # Trabajo Práctico 1, Parte A
@@ -59,7 +59,7 @@ Constatar la asimetría de la variable PO y presentar evidencia de la misma. Eva
 Una manera gráfica de constatar la asimetría es a través de un sencillo gráfico de densidad:
 ```{r grafico_asimetria}
 plot(density(POmarco))
-rug(POmarco, col= 'blue', ticksize = 0.1, lwd = 1)
+rug(POmarco, col= 'blue', ticksize = 0.03, lwd = 0.7)
 ```
 
 Aquí se puede ver claramente la asimetría positiva que presenta la variable PO en el Marco completo.
@@ -376,8 +376,8 @@ Si deseamos averiguar la varianza de este estimador, aprovechando que los $n_{c,
 
 $$
 \begin{align}
-\widehat{Var}(\hat{\Delta}) &= N^2 \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{1}{n_{h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},h}+s^{2}_{t_{0},h}\right)\right] \\ 
-&- 2 N^{2} \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{n_{c,h}}{n^{2}_{h}}-\frac{1}{N_{h}}\right)s_{t_{1},t_{0}c,h}\right] 
+\widehat{Var}(\hat{\Delta}) &= N^2 \sum\limits_{h=1}^{H}\left[\left(\frac{N_{h}}{N}\right)^{2}\left(\frac{1}{n_{h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},h}+s^{2}_{t_{0},h}\right)\right] \\ 
+&- 2 N^{2} \sum\limits_{h=1}^{H}\left[\left(\frac{N_{h}}{N}\right)^{2}\left(\frac{n_{c,h}}{n^{2}_{h}}-\frac{1}{N_{h}}\right)s_{t_{1},t_{0}c,h}\right] 
 \end{align}
 $$
 
@@ -388,7 +388,7 @@ $$
 \begin{align}
 s^{2}_{t,h} &= \frac{1}{n_{h}-1}  \sum\limits_{s_{h,t}}\left(y_{t} - \bar{y}_{t,h}\right)^{2} \\
 s_{t_{1},t_{0},c,h} &= \frac{1}{n_{c,h}-1}  \sum\limits_{s_{c,h}}\left(y_{t_{1}} - \bar{y}_{t_{1},c,h}\right)\left(y_{t_{0}} - \bar{y}_{t_{0},c,h}\right)
-\end{aign}
+\end{align}
 $$
 
 Y
@@ -410,7 +410,7 @@ Y $\bar{y}_{t,c,h}$ fue definido previamente.
 Para estimar la varianza de $\hat{\Delta}_{c}$, tenemos:
 
 $$
-\widehat{Var}(\hat{\Delta}_{c}) = N^2 \sum\limits_{h=1}^{H}\left[W_{h}^{2}\left(\frac{1}{n_{c,h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},c,h}+s^{2}_{t_{0},c,h}- 2 s_{t_{1},t_{0}c,h}\right)\right]
+\widehat{Var}(\hat{\Delta}_{c}) = N^2 \sum\limits_{h=1}^{H}\left[\left(\frac{N_{h}}{N}\right)^{2}\left(\frac{1}{n_{c,h}}-\frac{1}{N_{h}}\right)\left(s^{2}_{t_{1},c,h}+s^{2}_{t_{0},c,h}- 2 s_{t_{1},t_{0}c,h}\right)\right]
 $$
 
 Donde
