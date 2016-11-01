@@ -230,15 +230,4 @@ for (i in 1:6) {
 # Total de muestra por dominio
 # table(muestra$DOMAINVALUE)
 
-setwd("..")
-
-### Seleccion de la muestra bajo MSA
-# muestra <- selectSample(nuevoMarco1,prueba$solu$aggr_strata)
-## Resumen
-# Total Pob
-# sum(muestra$WEIGHTS)
-# Total Pob por dominio
-# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
-# Total de muestra por dominio
-# table(muestra$DOMAINVALUE)
-
+save.image(file = ".RDataParteB")
