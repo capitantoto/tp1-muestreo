@@ -4,8 +4,7 @@ output: html_document
 
 ```{r knitr_options, include=FALSE}
 library(knitr)
-opts_chunk$set(fig.width=12, fig.height=8, fig.path='graficos/',
-	                      warning=FALSE, message=FALSE)
+opts_chunk$set(fig.width=12, fig.height=9, message=FALSE)
 ```
 
 # Trabajo Práctico 1, Parte A
@@ -58,7 +57,7 @@ Constatar la asimetría de la variable PO y presentar evidencia de la misma. Eva
 ### Respuesta
 
 Una manera gráfica de constatar la asimetría es a través de un sencillo gráfico de densidad:
-```{r grafico_asimetria, fig.height=8}
+```{r grafico_asimetria}
 plot(density(POmarco))
 rug(PO, col= 'blue', ticksize = 0.1, lwd = 1)
 ```
@@ -76,9 +75,9 @@ Observamos luego gráficamente la relación entre PO y VMP, en los datos de la P
 plot(POpiloto, VMPpiloto)
 ```
 
-Y proponemos un modelo de regresión entre ambas variables, sin ordenada y asumiendo homocedasticidad:
+Proponemos un modelo de regresión entre ambas variables, sin ordenada y asumiendo homocedasticidad:
 
-$VMP\_{i} = \beta PO_{i} + \epsilon_{i}$
+$VMP_{i} = \beta PO_{i} + \epsilon_{i}$
 
 ```{r modelo_po_vmp}
 sinOrdenada <- lm(VMPpiloto ~ POpiloto + 0)
@@ -135,7 +134,7 @@ $$
 \begin{align}
 \sigma_{i}^{2} &= \sigma^{2}X_{i}^{\gamma} \\
 \ln(\sigma_{i}^{2}) &= \ln(\sigma^{2}X_{i}^{\gamma}) \\
-\ln(\sigma_{i}^{2)} &= \ln(\sigma^{2}) + \gamma \ln(X_{i})
+\ln(\sigma_{i}^{2}) &= \ln(\sigma^{2}) + \gamma \ln(X_{i})
 \end{align}
 $$
 
@@ -331,5 +330,7 @@ sample_n(muestra, 10)
 ## Ejercicio 6
 
 ### Enunciado
+
+Si se desea después de un año renovar el 20% de la muestra en los estratos donde no se censa, reteniendo parte de la muestra original y seleccionando a las nuevas unidades por MSA en cada estrato de $U_{h} - s_{h}$ , con $h = 1,...,H-1$ (el H es el *takeall*) y $s_{h}$ la muestra original en el estrato en cuestión. Proponer 2 alternativas para estimar la diferencia inter-anual $\hat{t}_yt − \hat{t}_{y(t−1)}$ entre dos totales de una misma característica. ¿Cómo estimaría las varianzas de dichos estimadores
 
 ### Respuesta
