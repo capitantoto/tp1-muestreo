@@ -1,0 +1,464 @@
+---
+output: html_document
+---
+
+```{r knitr_options, include=FALSE}
+library(knitr)
+opts_chunk$set(fig.width=12, fig.height=6, message=FALSE)
+load("parteB.RData")
+```
+
+
+# Trabajo Práctico 1, Parte B
+# Muestreo en poblaciones finitas 2016
+
+* 1 de Noviembre de 2016
+* Profesor: Gerardo Mitas
+* Alumno: Gonzalo Barrera Borla
+
+
+## Setup Inicial
+
+Antes de proceder con la resolución de las consignas, debemos cargar las librerías a utilizar, y el Marco Agropecuario:
+
+```{r setupB}
+# Packages
+library(sampling)
+library(SamplingStrata)
+library(dplyr)
+
+# Cargo dataframe
+load("data/Marco.Agropecuario.RData")
+```
+
+## Ejercicio 1
+
+### Enunciado
+
+Resolver la optimización por el algoritmo de Bethel empleando los 25 microestratos y las restricciones en CV a nivel Región o dominio detalladas. 
+
+### Respuesta
+
+Para generar los 25 microestratos, debemos transformar las variables numéricas CANTEMP y SUPERFICIE en categóricas según pide el enunciado.
+
+```{r categorizacion_CANTEMP_SUPERFICIE}
+# Creo las categorizazciones de CANTEMP y SUPERFICIE
+# Para ello, comienzo asignando la categoria "superior" a todas las observaciones del Marco,
+# y luego voy "pisando" este valor por default con las categorias "inferiores"
+Marco.Agropecuario$catCANTEMP <- 5
+Marco.Agropecuario$catCANTEMP <- ifelse(Marco.Agropecuario$CANTEMP <= 50, 4, Marco.Agropecuario$catCANTEMP)
+Marco.Agropecuario$catCANTEMP <- ifelse(Marco.Agropecuario$CANTEMP <= 40, 3, Marco.Agropecuario$catCANTEMP)
+Marco.Agropecuario$catCANTEMP <- ifelse(Marco.Agropecuario$CANTEMP <= 30, 2, Marco.Agropecuario$catCANTEMP)
+Marco.Agropecuario$catCANTEMP <- ifelse(Marco.Agropecuario$CANTEMP <= 20, 1, Marco.Agropecuario$catCANTEMP)
+
+Marco.Agropecuario$catSUPERFICIE <- 5
+Marco.Agropecuario$catSUPERFICIE <- ifelse(Marco.Agropecuario$SUPERFICIE <= 2000, 4, Marco.Agropecuario$catSUPERFICIE)
+Marco.Agropecuario$catSUPERFICIE <- ifelse(Marco.Agropecuario$SUPERFICIE <= 1500, 3, Marco.Agropecuario$catSUPERFICIE)
+Marco.Agropecuario$catSUPERFICIE <- ifelse(Marco.Agropecuario$SUPERFICIE <= 1000, 2, Marco.Agropecuario$catSUPERFICIE)
+Marco.Agropecuario$catSUPERFICIE <- ifelse(Marco.Agropecuario$SUPERFICIE <= 500, 1, Marco.Agropecuario$catSUPERFICIE)
+```
+
+El siguiente bloque de código permite comprobar manualmente que las variables estén correctamente categorizadas:
+```{r comprobar_categorizacion, eval=FALSE}
+sample_n(Marco.Agropecuario, 20)[,c("SUPERFICIE","catSUPERFICIE")]
+sample_n(Marco.Agropecuario, 20)[,c("CANTEMP","catCANTEMP")]
+```
+
+Luego, debemos renombrar las variables estratificadores y objetivo de modo que la función `bethel` (y más adelante `optimizeStrata`) entienda.
+También agregamos la variable de control `domainvalue`: aunque vamos a trabajar con 3 dominios por separado, para evitarle confusiones al algoritmo todas las observaciones reciben el mismo valor de `domainvalue`.
+
+```{r preparacion_variables_auxiliares}
+# Copio, renombro y transformo en factor las variables estratificadoras
+Marco.Agropecuario$X1 <- as.factor(Marco.Agropecuario$catCANTEMP)
+Marco.Agropecuario$X2 <- as.factor(Marco.Agropecuario$catSUPERFICIE)
+
+# Copio y renombro las variables objetivo
+Marco.Agropecuario$Y1 <- Marco.Agropecuario$SOJA
+Marco.Agropecuario$Y2 <- Marco.Agropecuario$TRIGO
+Marco.Agropecuario$Y3 <- Marco.Agropecuario$BOVINOS
+
+# Variable de control necesara para la optimizacion de estratos
+Marco.Agropecuario$domainvalue = 1
+```
+Pretendemos encontrar óptimos por dominio, tarea para la cual `bethel` tiene algunas dificultades técnicas. Por ello, separaremos el Marco Agropecuario en 3 marcos según la región de sus Unidades: Norte, Centro y Sur:
+
+```{r segmento_marco_por_dominios}
+Norte <- Marco.Agropecuario[Marco.Agropecuario$REGION==1,]
+Centro <- Marco.Agropecuario[Marco.Agropecuario$REGION==2,]
+Sur <- Marco.Agropecuario[Marco.Agropecuario$REGION==3,]
+```
+
+Creamos un diminuto data frame con la información sobre los CV objetivo por variable, para cada región.
+
+```{r cv_objetivo}
+DOM <- "DOM1"
+CV1 <- 0.02
+CV2 <- 0.01
+CV3 <- 0.02
+domainvalue <- 1
+CVNorte <- data.frame(DOM,CV1,CV2,CV3,domainvalue)
+
+CV1 <- 0.01
+CV2 <- 0.01
+CV3 <- 0.02
+CVCentro <- data.frame(DOM,CV1,CV2,CV3,domainvalue)
+
+CV1 <- 0.05
+CV2 <- 0.03
+CV3 <- 0.05
+CVSur <- data.frame(DOM,CV1,CV2,CV3,domainvalue)
+```
+
+Como último paso de preparación, computamos la información auxiliar que el algoritmo exige para ejecutar la optimización
+
+```{r build_strata, echo=FALSE}
+resumenNorte <- buildStrataDF(Norte)
+resumenCentro <- buildStrataDF(Centro)
+resumenSur <- buildStrataDF(Sur)
+```
+
+Finalmente, podemos resolver la optimización por el algoritmo de Bethel
+```{r solucion_bethel}
+soluNorte <- bethel(resumenNorte,CVNorte,printa=TRUE)
+soluCentro <- bethel(resumenCentro,CVCentro,printa=TRUE)
+soluSur <- bethel(resumenSur,CVSur,printa=TRUE)
+```
+
+## Ejercicio 2
+
+### Enunciado
+
+Si el algoritmo convergió, por dominio analizar y comprobar si existen estratos con Nh<=10 y/o nh <=4 y/o los que el algoritmo propone como “censo” por dominio de estimación. Se sugiere presentar en una tabla con los resultados del óptimo por dominio y estrato, con sus tamaños poblacionales, muestrales. Completar la tabla con las probabilidades π k y agregar un resumen con los tamaños muestrales por dominio y los CV alcanzados vs. los propuestos.
+
+### Respuesta
+
+La información auxiliar que provee la implementación del algoritmo de Bethel que estamos utilizando es poco maleable. Para analizarla más cómodamente, escribimos dos funciones auxilares. Dado el output de una corrida de `bethel` con `printA=TRUE`,
+
+* **tablaCV** provee una tabla comparativa de los CV esperados/objetivos con los CV alcanzados
+* **tablaEstratos** provee una tabla con los $N_{h}$, $n_{h}$ y $\pi_{k}$ por estrato y globales
+
+```{r fun_tablaCV}
+tablaCV <- function (solucion) {
+  tempResult <- data.frame(attr(soluSur,"outcv")[,c(2,3,4)])
+  
+  tempResult$variable <- c("SOJA","TRIGO","BOVINOS")
+  tempResult$plannedCV <- as.numeric(as.character(tempResult$PLANNED.CV))
+  tempResult$actualCV <- as.numeric(as.character(tempResult$ACTUAL.CV))
+  
+  result <- tempResult[,c("variable","plannedCV","actualCV")]
+  return(result)
+}
+```
+```{r fun_tablaEstratos}
+tablaEstratos <- function(solucion) {
+  tempResult <- data.frame(attr(solucion,"confr")[,c(1,2,3)])
+  
+  tempResult$Nh <- as.numeric(as.character(tempResult$POPULATION))
+  tempResult$nh <- as.numeric(as.character(tempResult$BETHEL))
+  tempResult$Pik <- tempResult$nh/tempResult$Nh
+  
+  result <- tempResult[,c("STRATUM","Nh","nh","Pik")]
+  return(result)
+}
+```
+
+El enunciado también pide analizar si existen estratos con $N_{h}<=10$, $n_{h}<=4$ o "censos" (es decir, donde los individuos del estrato participan de la muestra con probabilidad 1, $\pi_{k}=1$. Podríamos realizar esta tarea a mano, pero también podemos encargársela a una función que filtre el output de `tablaEstratos`:
+
+```{r fun_malosEstratos}
+malosEstratos <- function(tablaEstratos) {
+  result <- tablaEstratos[tablaEstratos$Nh<=10 | 
+                            tablaEstratos$nh<=4 | 
+                            tablaEstratos$Pik==1,]
+  return(result)
+}
+
+```
+Luego, creamos las tablas resumen para cada dominio, e inspeccionamos su contenido:
+```{r generar_tablas_resumen}
+tablaCVNorte <- tablaCV(soluNorte)
+tablaCVCentro <- tablaCV(soluCentro)
+tablaCVSur <- tablaCV(soluSur)
+
+tablaEstratosNorte <- tablaEstratos(soluNorte)
+tablaEstratosCentro <- tablaEstratos(soluCentro)
+tablaEstratosSur <- tablaEstratos(soluSur)
+```
+
+#### Dominio "Norte"
+```{r resultados_norte, echo=FALSE}
+print("CVs alcanzados versus esperados:")
+tablaCVNorte
+print("Resumen por estrato:")
+tablaEstratosNorte
+print("Lista de estratos inestables:")
+malosEstratos(tablaEstratosNorte)
+```
+
+#### Dominio "centro"
+```{r resultados_centro, echo=FALSE}
+print("CVs alcanzados versus esperados:")
+tablaCVCentro
+print("Resumen por estrato:")
+tablaEstratosCentro
+print("Lista de estratos inestables:")
+malosEstratos(tablaEstratosCentro)
+```
+
+#### Dominio "Sur"
+```{r resultados_sur, echo=FALSE}
+print("CVs alcanzados versus esperados:")
+tablaCVSur
+print("Resumen por estrato:")
+tablaEstratosSur
+print("Lista de estratos inestables:")
+malosEstratos(tablaEstratosSur)
+```
+
+## Ejercicio 3
+
+### Enunciado
+
+Resolver la optimización por el algoritmo de Genético buscando reagrupar con un criterio óptimo a los 25 microestratos por dominio, imponiendo la condición que la nueva estratificación no supere los 10 estratos, una restricción tal que $n_{h}>=5$ en cada estrato y bajo los mismos CV a nivel Región empleados para el algoritmo de Bethel. Teniendo en cuenta que el algoritmo puede llevar a mínimos locales, se propone estudiar y presentar no menos de 3 alternativas modificando algunos parámetros que por default propone el algoritmo (`pops`, `iter`, `mut_chance` y `elitism_rate`) antes de quedarse con aquella que responde a las precisiones deseadas y al menor tamaño de muestra final alcanzado por samplingStrata1. 
+
+### Respuesta
+
+A diferencia de `bethel`, la rutina `optimizeStrata` sí es capaz de lidiar correctamente con requerimientos de CV variantes por dominio. Por ello, para esta segunda optimización, podemos utilizar el Marco Agropecuario completo, siempre y cuando agreguemos `REGION` como variable estratificadora y de dominio:
+
+```{r marco_con_dominios}
+Marco.Agropecuario$X3 <- as.factor(Marco.Agropecuario$REGION)
+Marco.Agropecuario$domainvalue <- Marco.Agropecuario$REGION
+```
+
+Para ejecutar la optimización por algoritmo genético, debemos pasar, al igual que a `bethel`, los resltados de `buildstrata` junto con una tabla con las precisiones por variable objetivo y dominio:
+
+```{r preparacion_algo_genetico, echo=FALSE}
+# Información auxiliar por variable estratificadora
+resumenMarco <- buildStrataDF(Marco.Agropecuario)
+
+
+# Precisiones deseadas sobre las variables por dominio
+DOM <- rep("DOM1",3)
+CV1 <- c(0.02, 0.01, 0.05)
+CV2 <- c(0.01, 0.01, 0.03)
+CV3 <- c(0.02, 0.02, 0.05)
+domainvalue <- c(1, 2, 3)
+CVobjetivo <- data.frame(DOM, CV1, CV2, CV3, domainvalue)
+CVobjetivo
+```
+
+Se pretende realizar una exploración del espacio de parametrización de `optimizeStrata`, en particular sobre `pops`, `iter`, `mut_chance` y/o `elitism_rate`, con no menos de 3 combinaciones posibles. Dado que cada corrida del algoritmo es costosa en términos de tiempo, no podemos probar infinitas posibilidades. A su vez, nos gustaría que aunque sea pocas, las corridas que realicemos nos provean de alguna información accionable sobre el comportamiento del algoritmo.
+
+A priori, es de esperar que el mínimo que alcanza una corrida sea decreciente en la cantidad de iteraciones, y el tamaño de la población: puede que la corrida en sí tarde más, pero el resultado final no puede empeorar al aumentar `pops` o `iter`. Por ello, fijaremos ambos parámetros en valores bastante más altos que los default, y exploraremos en los otros dos. Usaremos `pops=100` e `iter=200` (versus 20 de default en ambos).
+
+Por otra parte, los parámetros `mut_chance` y `elitism_rate`, al menos a mi limitado entender, no tienen por qué tener una relación tan lineal con el valor del mínimo final alcanzado. Ambos controlan no cuán extensamente se explora, sino cómo se explora, cuánto se desvía cada generación de los óptimos alcanzados previamente, y qué fracción de ellos controlar. Por ello, hemos decidido explorar algunos valores alrededor de los defaults provistos por `optimizeStrata` para `mut_chance` (= 0.05) y `elitism_rate`. En particular, haremos 6 pruebas, con los siguientes juegos de valores:
+
+```{r parametrosAProbar, include=FALSE}
+# Considero seis juegos de parametros a probar, combinando 3 variantes de mut_chance con 2 de elitism_rate
+prueba1 <- c("prueba1", 0.05, 0.1)
+prueba2 <- c("prueba2", 0.05, 0.2)
+prueba3 <- c("prueba3", 0.10, 0.1)
+prueba4 <- c("prueba4", 0.10, 0.2)
+prueba5 <- c("prueba5", 0.20, 0.1)
+prueba6 <- c("prueba6", 0.20, 0.2)
+
+parametrosAProbar <- rbind(prueba1,
+                           prueba2,
+                           prueba3,
+                           prueba4,
+                           prueba5,
+                           prueba6)
+parametrosAProbar <- as.data.frame(parametrosAProbar)
+colnames(parametrosAProbar) <- c("dirname","mut_chance","elitism_rate")
+parametrosAProbar$mut_chance <- as.numeric(as.character(parametrosAProbar$mut_chance))
+parametrosAProbar$elitism_rate <- as.numeric(as.character(parametrosAProbar$elitism_rate))
+parametrosAProbar
+```
+
+Correr `optimizeStrata`, actualizar los estratos y el marco original, evaluar los resultados... son demasiados pasos para realizar a mano en cada corrida. Para evitar errores manuales, hemos escrito la siguiente rutina, `probarParametros`, que toma un par de valores para `mut_chance` y `elitism_rate`, y
+
+1. corre `optimizeStrata` con los valores default que exige el ejercicio, los que hemos fijate para `pops` e `iter`, y los que reciba como parámetros, y guarda el resultado;
+2. con la solución obtenida, actualiza las estratificaciones tanto del resumen del Marco generado por `buildStrataDF` como del Marco Agreopecuario  en sí;
+3. genera dos tablas resumen,
+    + una con las opciones variables empleadas, más la cantidad de estratos y el tamaño muestral alcanzado por dominio y en general,
+    + otra con los CV esperados y alcanzados; y
+4. Evalúa la solución en un conjunto de 100 muestras tomadas al azar.
+
+Además, guarda todos los objetos resultado de estas manipulaciones en una lista que devuelve al terminar de correr:
+
+```{r fun_probarParametros}
+probarParametros <- function(mut_chance, elitism_rate) {
+  
+  # Lista con resultados
+  prueba <- list()
+  
+  # Solucion por algoritmo genético
+  prueba$solu <- optimizeStrata(strata=resumenMarco,
+                                errors=CVobjetivo,                        
+                                iter=200,
+                                pops=100,
+                                initialStrata=5,
+                                mut_chance=mut_chance,
+                                elitism_rate=elitism_rate,
+                                minnumstr=5,
+                                writeFiles=TRUE)
+  
+  # Actualización de la data en función de los nuevos agrupamientos de estratos
+  prueba$nuevosEstratos <- updateStrata(resumenMarco, prueba$solu, writeFile=TRUE)
+  prueba$nuevoMarco <- updateFrame(Marco.Agropecuario,prueba$nuevosEstratos)
+  
+  # Resumen aspectos centrales de la corrida
+  prueba$resumen <- data.frame(mut_chance,elitism_rate)
+  prueba$resumen <- cbind(prueba$resumen,t(tapply(prueba$solu$aggr_strata$STRATO,prueba$solu$aggr_strata$DOM1,function(x) length(unique(x)))))
+  prueba$resumen <- cbind(prueba$resumen,t(tapply(prueba$solu$aggr_strata$SOLUZ,prueba$solu$aggr_strata$DOM1,sum)))
+  colnames(prueba$resumen) <- c("mut_chance","elitism_rate","hNorte","hCentro","hSur","nNorte","nCentro","nSur")
+  prueba$resumen$H <- prueba$resumen$hNorte + prueba$resumen$hCentro + prueba$resumen$hSur
+  prueba$resumen$N <- prueba$resumen$nNorte + prueba$resumen$nCentro + prueba$resumen$nSur
+  
+  # Evaluación de la solución
+  prueba$eval <- evalSolution(prueba$nuevoMarco,prueba$solu$aggr_strata,nsampl=100,writeFiles=TRUE)
+  
+  # CVs objetivos y CVs alcanzados en la evaluación
+  prueba$CVesperado <-read.csv("expected_cv.csv")
+  prueba$CVesperado <- cbind(prueba$CVesperado,CVobjetivo)
+  
+  return(prueba)
+}
+```
+
+Ya de por sí, la función recién definida nos ahorrará buena cantidad de trabajo, pero todavía tenemos un problema: sus ejecuciones generan una enorme cantidad de archivos auxiliares, que deseamos conservar en conjunto con el objeto acumulador de resultados que definimos. Además, ni `optimizeStrata` ni `evalSolution` proveen formas fáciles de cambiar programáticamente el nombre de los archivos que outputean.
+
+Por esto, agregamos una corta rutina más, que para cada una de las combinaciones de parámetros a probar definidas anteriormente,
+
+1. crea (si no la hay ya), una carpeta con el nombre `pruebaX`, y en cualquier caso la elige como directorio de trabajo,
+2. corre la función anterior, `probarParametros`, de modo que los archivos auxiliares generados estén en su propio directorio,
+3. salva el objeto que devuelve la i-ésima prueba en el i-ésimo lugar de una lista, para poder comparar todas las corridas más tarde, y
+4. finalmente, vuelve al directorio de trabajo original.
+
+Esta rutina es el núcleo de este trabajo, y toma no menos de dos horas aún en una PC poderosa, por lo tanto no se la evalúa en este momento, sino que sus resultados están guardados en el archivo `parteB.RData`.
+
+```{r probar_combinaciones_parametros, eval=FALSE}
+pruebas <- list()
+
+for (i in 1:6) {
+  row <- parametrosAProbar[i,]
+  dirname <- as.character(row$dirname)
+  # Creo un directorio para los archivos de trabajo si aun no existe
+  dir.exists(dirname) || dir.create(dirname)
+  setwd(dirname)
+
+    pruebas[[i]] <- probarParametros(mut_chance = row$mut_chance,
+                                 elitism_rate = row$elitism_rate)
+  setwd("..")
+}
+```
+
+## Ejercicio 4 y 5
+
+### Enunciado
+
+Presentar para cada solución o estratificación un resumen con: 
+
+* Los parámetros u opciones empleadas en el algoritmo 
+* El total de estratos en cada dominio 
+* Tamaños muestrales alcanzados y por dominio 
+ 
+Proponer a su criterio una estratificación de las estudiadas como “definitiva”, acompañándola con una síntesis con los motivos que llevaron a elegirla, más los gráficos de convergencia (plotdom1.pdf-plotdom3.pdf). Comparar los tamaños de muestra total por dominio con los propuestos por Bethel. 
+
+### Respuesta
+
+Utilizando el dataframe `resumen` que devuelve, entre otros, `probarParametros`, podemos comparar rápidamente los resultados de nuestras seis corrida:
+
+```{r comparar_corridas, echo=FALSE}
+comparacion_corridas a<- rbind(pruebas[[1]]$resumen,
+			       pruebas[[2]]$resumen,
+			       pruebas[[3]]$resumen,
+			       pruebas[[4]]$resumen,
+			       pruebas[[5]]$resumen,
+			       pruebas[[6]]$resumen)
+comparacion_corridas
+```
+
+De esta comparación, lo primera que llama la atención, es que $N$ es básicamente idéntico para las seis pruebas: la razón entre el menor y mayor valor es de $5565/5549=1.0029$, o un 0,3%.
+
+Lo que no es evidente a partir de esta tabla, es si todos los N se parecen tanto entre sí porque:
+* efectivamente estamos en o cerca del mínimo global (y no es posible obtener los CV deseados con un N menor),
+* hemos sido muy tímidos en la exploración de parámetros, o
+* la estratificación propuesta no está aportando demasiado a la reducción del $N$ global en comparación con un método menos sofisticado.
+
+También es interesante notar que ,aunque puede ser pura coincidencia (pues todos los N están bastante apretados entre sí), el menor le corresponde a la **prueba 2**, en la cual utilizamos **los valores por default de `mut_chance` y `elitism_rate`**.
+
+Obervemos ahora los gráfico de convergencia por dominio:
+
+#### Convergencia Dominio Norte
+![Convergencia Dominio Norte](prueba2/plotdom1.pdf)
+
+#### Convergencia Dominio Centro
+![Convergencia Dominio Centro](prueba2/plotdom2.pdf)
+
+#### Convergencia Dominio Sur
+![Convergencia Dominio Sur](prueba2/plotdom3.pdf)
+
+Es destacable que en los dominios Norte y Centro, que son por mucho los más extensos, el mínimo costo de cada población disminuye ínfimamente o directamente no disminuye de una corrida a la siguiente, mientras que el promedio ni siquiera pareciese estar convergiendo.
+
+Por otra parte, en el dominio Sur sí se observa una convergenia del costo medio por población hacia un valor estable alrededor de 300, y el mínimo ya ha convergido a 295 aún antes de la iteración 50.
+
+En otras palabras, es posible que los parámetros elegidos para correr el algoritmo genético sean válidos para poblaciones del tamaño del Dominio Sur, pero resulten absolutamente inadecuados para poblaciones un orden de magnitud mayor, como lo son los dominios Norte y Centro.
+
+Finalmente, puede resultar ilustrativo comparar los N por dominio de la prueba 2 con los obtenidos más temprano con Bethel:
+
+```{r comparacion_betheñ_genetico, echo=FALSE}
+bethel <- list(nNorte = tablaEstratosNorte[26,"nh"],
+               nCentro = tablaEstratosCentro[26,"nh"],
+               nSur = tablaEstratosSur[26,"nh"],
+               N = tablaEstratosNorte[26,"nh"] +
+                 tablaEstratosCentro[26,"nh"] +
+                 tablaEstratosSur[26,"nh"])
+
+genetico <- list(nNorte = pruebas[[2]]$resumen$nNorte,
+                 nCentro = pruebas[[2]]$resumen$nCentro,
+                 nNorte = pruebas[[2]]$resumen$nSur,
+                 nNorte = pruebas[[2]]$resumen$nNorte + 
+                   pruebas[[2]]$resumen$nCentro + 
+                   pruebas[[2]]$resumen$nSur)
+
+rbind(bethel,genetico)
+```
+
+La diferencia entre los tamaños de muestra propuestos por cada algoritmo es verdaderamente mínima. Aunque el algoritmo genético siempre performa al menos tan bien como el de Bethel, no logra disminuir el tamaño muestral final en un 1% siquiera. ($5549/5584=0.9937$), aún después de pesadísimos cómputos, dos o tres órdenes de magnitud más lentos (1-2s de Bethel contra >20m de cada corrida genética).
+
+Viendo estos resultados, y considerando que la estratificación genética es muy "sintética" (agrupa segmentos discontinuos de la población subyacente), como asesor de los organizadores de la encuesta, recomendaría **mantener la estratificación base de Bethel, agrupando estratos continuos únicamente para eliminar aquellos que son inestables según el análisis del Ejercicio 2**. Este trabajo, sin embargo, cae ya fuera dela órbita de este Informe.
+
+## Ejercicio 6
+
+### Enunciado
+
+Presentar la tabla de conversión de los estratos originales en los definitivos en cada dominio señalando en la microestratificación cómo quedaron agrupados.
+
+### Respuesta
+
+
+### Respuesta
+
+
+```{r extras_fin}
+### Seleccion de la muestra bajo MSA
+# muestra <- selectSample(nuevoMarco1,soluGen1$aggr_strata)
+## Resumen
+# Total Pob
+# sum(muestra$WEIGHTS)
+# Total Pob por dominio
+# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
+# Total de muestra por dominio
+# table(muestra$DOMAINVALUE)
+#setwd("..")
+
+### Seleccion de la muestra bajo MSA
+# muestra <- selectSample(nuevoMarco1,prueba$solu$aggr_strata)
+## Resumen
+# Total Pob
+# sum(muestra$WEIGHTS)
+# Total Pob por dominio
+# tapply(muestra$WEIGHTS,muestra$DOMAINVALUE,sum)
+# Total de muestra por dominio
+# table(muestra$DOMAINVALUE)
+```
